@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NOCO Asset IQ</title>
+    <meta name="description" content="NOCO Asset IQ by Axion Dynamics. Every upgrade, in the right order." />
+    <meta name="theme-color" content="#0E6B6B" />
+    <script>
+      // Apply the saved / system theme before first paint to avoid a flash.
+      (function () {
+        var pref = 'system'
+        try { pref = localStorage.getItem('noco-theme') || 'system' } catch (e) {}
+        var dark = pref === 'dark' || (pref === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light')
+      })()
+    </script>
+    <script type="module" crossorigin src="./assets/index-f-Sjxgi3.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-CR5INY_6.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
