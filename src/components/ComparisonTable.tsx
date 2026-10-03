@@ -21,8 +21,8 @@ export function ComparisonTable({
   return (
     <div className="relative overflow-x-auto">
       <table className="tnum w-full min-w-[820px] border-collapse text-[13px]">
-        <thead className="bg-surface-2/70">
-          <tr className="border-b border-line">
+        <thead className="neu-inset-sm">
+          <tr>
             <th scope="col" className={cx(th, 'text-left')}>Measure</th>
             <th scope="col" className={cx(th, 'text-right')}>Gross cost</th>
             <th scope="col" className={cx(th, 'text-right')}>Potential incentive</th>
@@ -42,7 +42,7 @@ export function ComparisonTable({
               <tr
                 key={id}
                 onClick={() => onOpen(id)}
-                className="group cursor-pointer border-b border-line transition-colors duration-150 last:border-b-0 hover:bg-surface-2 has-[:focus-visible]:bg-surface-2"
+                className="group cursor-pointer border-b border-line/70 transition-colors duration-150 last:border-b-0 hover:bg-[color-mix(in_srgb,var(--fg)_3%,transparent)] has-[:focus-visible]:bg-[color-mix(in_srgb,var(--fg)_3%,transparent)]"
               >
                 <td className={cx(td, 'text-left')}>
                   <div className="flex items-center gap-2">

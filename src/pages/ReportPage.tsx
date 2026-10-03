@@ -62,10 +62,10 @@ export function ReportPage({
   return (
     <div>
       <div className="mb-6 flex items-center justify-between gap-3 print:hidden">
-        <Button variant="ghost" onClick={onBack}>
+        <Button variant="secondary" onClick={onBack}>
           <ArrowLeft className="h-4 w-4" aria-hidden /> Back to strategy
         </Button>
-        <Button onClick={() => window.print()} ariaLabel="Print executive report">
+        <Button onClick={() => window.print()} ariaLabel="Print executive report" tour="report-print">
           <Printer className="h-4 w-4" aria-hidden />
           <span>
             Print<span className="hidden sm:inline"> executive report</span>
@@ -73,10 +73,10 @@ export function ReportPage({
         </Button>
       </div>
 
-      <article className="theme-light mx-auto max-w-[816px] rounded-[6px] border border-line bg-white px-6 py-8 text-[13px] text-fg shadow-[0_1px_3px_rgba(16,24,40,0.08)] sm:px-14 sm:py-12 print:max-w-none print:rounded-none print:border-0 print:p-0 print:shadow-none">
+      <article data-tour="report-doc" className="theme-light mx-auto max-w-[816px] rounded-[4px] bg-white px-6 py-8 text-[13px] text-fg shadow-[0_1px_1px_rgba(0,0,0,0.06),0_10px_24px_-6px_rgba(15,23,42,0.22),0_40px_80px_-30px_rgba(15,23,42,0.35)] sm:px-14 sm:py-12 print:max-w-none print:rounded-none print:border-0 print:p-0 print:shadow-none">
         <header className="border-b-2 border-fg pb-5">
           <div className="flex items-center justify-between gap-4">
-            <Logo />
+            <Logo flat />
             <span className="text-[12px] text-fg-2">{today}</span>
           </div>
           <h1 className="mt-6 text-[24px] font-semibold tracking-[-0.01em] text-fg">Preliminary Energy Investment Roadmap</h1>

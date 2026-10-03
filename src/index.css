@@ -31,65 +31,97 @@
   --color-info-soft: var(--info-soft);
 }
 
-/* ---------- Light theme (default, also used for the report document) ---------- */
-:root,
-.theme-light {
+/* ---------- Light theme (default) ----------
+   Soft neumorphic palette: surfaces sit on a tinted ground and are shaped by a
+   light source at the top-left (white highlight) and a cool shadow bottom-right. */
+:root {
   color-scheme: light;
-  --bg: #f7f8fa;
-  --surface: #ffffff;
-  --surface-2: #f1f3f5;
-  --surface-3: #ffffff;
-  --fg: #111827;
-  --fg-2: #667085;
-  --fg-3: #98a2b3;
-  --line: #e4e7ec;
-  --line-strong: #d0d5dd;
+  --bg: #e6eaf0;
+  --surface: #eceff4;
+  --surface-2: #e1e6ed;
+  --surface-3: #f3f5f8;
+  --fg: #0f1b2d;
+  --fg-2: #536276;
+  --fg-3: #8592a5;
+  --line: #d3dae3;
+  --line-strong: #bfc8d4;
   --brand: #16794a;
   --brand-hover: #11623c;
   --brand-fg: #ffffff;
-  --brand-text: #16794a;
-  --brand-soft: #edf7f1;
+  --brand-text: #136b41;
+  --brand-soft: #dcefe4;
   --pos: #16a34a;
   --warn: #d97706;
-  --warn-text: #b45309;
-  --warn-soft: #fff8eb;
-  --neg: #dc2626;
+  --warn-text: #a14b06;
+  --warn-soft: #fbeedb;
+  --neg: #c62828;
   --info: #2563eb;
   --info-text: #1d4ed8;
-  --info-soft: #eff4ff;
-  --shadow-overlay: 0 24px 48px -12px rgba(16, 24, 40, 0.18);
+  --info-soft: #e1e9fb;
+
+  --sh-dark: rgba(152, 166, 188, 0.55);
+  --sh-light: rgba(255, 255, 255, 0.95);
+  --edge: rgba(255, 255, 255, 0.75);
+  --raise-bg: linear-gradient(145deg, #f1f4f8 0%, #e7ebf0 100%);
+  --well-bg: #e1e6ed;
+  --shadow-overlay: 0 28px 60px -18px rgba(30, 41, 59, 0.35);
+  --brand-grad: linear-gradient(180deg, #1f9160 0%, #157346 100%);
+  --brand-grad-hover: linear-gradient(180deg, #23a06a 0%, #177d4c 100%);
+  --knob: radial-gradient(circle at 35% 30%, #ffffff 0%, #eef1f5 45%, #d9dfe7 100%);
 }
 
 /* ---------- Dark theme ---------- */
 [data-theme='dark'] {
   color-scheme: dark;
-  --bg: #0d1117;
-  --surface: #151a21;
-  --surface-2: #1b212a;
-  --surface-3: #202731;
-  --fg: #f3f4f6;
-  --fg-2: #aeb6c2;
-  --fg-3: #7c8593;
-  --line: #2b3440;
-  --line-strong: #3a4553;
+  --bg: #1a1f27;
+  --surface: #1e242d;
+  --surface-2: #161b22;
+  --surface-3: #252c36;
+  --fg: #eef1f5;
+  --fg-2: #a7b1c0;
+  --fg-3: #7a8596;
+  --line: #2c343f;
+  --line-strong: #3a4350;
   --brand: #2a8a5c;
   --brand-hover: #31a06b;
   --brand-fg: #ffffff;
-  --brand-text: #42b883;
-  --brand-soft: #16302a;
-  --pos: #42b883;
+  --brand-text: #4cc08d;
+  --brand-soft: #1b3329;
+  --pos: #4cc08d;
   --warn: #e0a030;
   --warn-text: #f0b44c;
-  --warn-soft: #2d2414;
+  --warn-soft: #2e2617;
   --neg: #f05252;
   --info: #5b8def;
   --info-text: #8fb3f7;
-  --info-soft: #18243a;
-  --shadow-overlay: 0 24px 48px -12px rgba(0, 0, 0, 0.6);
+  --info-soft: #1b2638;
+
+  --sh-dark: rgba(6, 8, 12, 0.7);
+  --sh-light: rgba(255, 255, 255, 0.045);
+  --edge: rgba(255, 255, 255, 0.05);
+  --raise-bg: linear-gradient(145deg, #222933 0%, #1b2129 100%);
+  --well-bg: #161b22;
+  --shadow-overlay: 0 28px 60px -18px rgba(0, 0, 0, 0.75);
+  --brand-grad: linear-gradient(180deg, #2f9e6b 0%, #23804f 100%);
+  --brand-grad-hover: linear-gradient(180deg, #35ad76 0%, #278c58 100%);
+  --knob: radial-gradient(circle at 35% 30%, #3a4350 0%, #2a313c 50%, #1e242d 100%);
 }
 
-/* The report document is always light, even inside dark mode. */
+/* The report document is always a light sheet of paper, even in dark mode. */
 .theme-light {
+  color-scheme: light;
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #f3f5f8;
+  --surface-3: #ffffff;
+  --fg: #111827;
+  --fg-2: #5b6576;
+  --fg-3: #98a2b3;
+  --line: #e4e7ec;
+  --line-strong: #d0d5dd;
+  --brand: #16794a;
+  --brand-text: #16794a;
+  --brand-soft: #edf7f1;
   color: var(--fg);
 }
 
@@ -107,61 +139,174 @@ body {
   font-feature-settings: 'cv11';
 }
 
+/* Keep tour targets clear of the sticky header when scrolled into view. */
+[data-tour] {
+  scroll-margin-top: 96px;
+  scroll-margin-bottom: 24px;
+}
+
 .tnum {
   font-variant-numeric: tabular-nums;
 }
 
 :where(button, a, [role='button'], summary):focus-visible {
   outline: 2px solid var(--brand-text);
-  outline-offset: 2px;
-  border-radius: 6px;
+  outline-offset: 3px;
+  border-radius: 8px;
 }
 
-/* ---------- Range slider ---------- */
+/* ---------- Neumorphic primitives ---------- */
+.neu-raised {
+  background: var(--raise-bg);
+  border: 1px solid var(--edge);
+  box-shadow:
+    9px 9px 20px var(--sh-dark),
+    -9px -9px 20px var(--sh-light);
+}
+.neu-raised-sm {
+  background: var(--raise-bg);
+  border: 1px solid var(--edge);
+  box-shadow:
+    4px 4px 10px var(--sh-dark),
+    -4px -4px 10px var(--sh-light);
+}
+.neu-inset {
+  background: var(--well-bg);
+  border: 1px solid transparent;
+  box-shadow:
+    inset 3px 3px 7px var(--sh-dark),
+    inset -3px -3px 7px var(--sh-light);
+}
+.neu-inset-sm {
+  background: var(--well-bg);
+  box-shadow:
+    inset 2px 2px 4px var(--sh-dark),
+    inset -2px -2px 4px var(--sh-light);
+}
+
+/* Tactile buttons: raised at rest, pressed in while active. */
+.neu-btn {
+  background: var(--raise-bg);
+  border: 1px solid var(--edge);
+  color: var(--fg);
+  box-shadow:
+    4px 4px 10px var(--sh-dark),
+    -4px -4px 10px var(--sh-light);
+  transition:
+    box-shadow 0.15s,
+    transform 0.15s,
+    color 0.15s;
+}
+.neu-btn:hover:not(:disabled) {
+  box-shadow:
+    5px 5px 12px var(--sh-dark),
+    -5px -5px 12px var(--sh-light);
+}
+.neu-btn:active:not(:disabled),
+.neu-btn[aria-pressed='true'],
+.neu-btn[aria-checked='true'] {
+  box-shadow:
+    inset 3px 3px 6px var(--sh-dark),
+    inset -3px -3px 6px var(--sh-light);
+  transform: translateY(0.5px);
+}
+.neu-btn-primary {
+  background: var(--brand-grad);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  color: var(--brand-fg);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.18);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    0 8px 16px -6px color-mix(in srgb, var(--brand) 70%, transparent),
+    4px 4px 10px var(--sh-dark),
+    -4px -4px 10px var(--sh-light);
+  transition:
+    box-shadow 0.15s,
+    transform 0.15s,
+    background 0.15s;
+}
+.neu-btn-primary:hover:not(:disabled) {
+  background: var(--brand-grad-hover);
+}
+.neu-btn-primary:active:not(:disabled) {
+  box-shadow:
+    inset 0 2px 5px rgba(0, 0, 0, 0.35),
+    2px 2px 5px var(--sh-dark),
+    -2px -2px 5px var(--sh-light);
+  transform: translateY(1px);
+}
+
+/* Inputs sit in recessed wells. */
+.neu-field {
+  background: var(--well-bg);
+  border: 1px solid transparent;
+  box-shadow:
+    inset 2px 2px 5px var(--sh-dark),
+    inset -2px -2px 5px var(--sh-light);
+  transition:
+    box-shadow 0.15s,
+    border-color 0.15s;
+}
+.neu-field:focus {
+  outline: none;
+  border-color: color-mix(in srgb, var(--brand) 55%, transparent);
+  box-shadow:
+    inset 2px 2px 5px var(--sh-dark),
+    inset -2px -2px 5px var(--sh-light),
+    0 0 0 3px color-mix(in srgb, var(--brand) 18%, transparent);
+}
+.neu-field[aria-invalid='true'] {
+  border-color: color-mix(in srgb, var(--neg) 70%, transparent);
+}
+
+/* ---------- Range slider: recessed track, raised knob ---------- */
 input[type='range'].slider {
   -webkit-appearance: none;
   appearance: none;
   width: 100%;
-  height: 4px;
+  height: 8px;
   border-radius: 999px;
-  background: linear-gradient(
-    to right,
-    var(--brand) 0%,
-    var(--brand) var(--fill, 50%),
-    var(--line-strong) var(--fill, 50%),
-    var(--line-strong) 100%
-  );
+  background:
+    linear-gradient(to right, var(--brand) 0%, var(--brand) var(--fill, 50%), transparent var(--fill, 50%)),
+    var(--well-bg);
+  box-shadow:
+    inset 2px 2px 4px var(--sh-dark),
+    inset -2px -2px 4px var(--sh-light);
   outline: none;
   cursor: pointer;
 }
 input[type='range'].slider::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 16px;
-  height: 16px;
+  width: 22px;
+  height: 22px;
   border-radius: 999px;
-  background: var(--surface-3);
-  border: 2px solid var(--brand);
-  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.2);
+  background: var(--knob);
+  border: 1px solid var(--edge);
+  box-shadow:
+    3px 3px 7px var(--sh-dark),
+    -2px -2px 5px var(--sh-light);
   transition: box-shadow 0.15s;
 }
 input[type='range'].slider::-moz-range-thumb {
-  width: 14px;
-  height: 14px;
+  width: 20px;
+  height: 20px;
   border-radius: 999px;
-  background: var(--surface-3);
-  border: 2px solid var(--brand);
-}
-input[type='range'].slider:hover::-webkit-slider-thumb {
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand) 18%, transparent);
+  background: var(--knob);
+  border: 1px solid var(--edge);
+  box-shadow:
+    3px 3px 7px var(--sh-dark),
+    -2px -2px 5px var(--sh-light);
 }
 input[type='range'].slider:focus-visible::-webkit-slider-thumb {
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand) 35%, transparent);
+  box-shadow:
+    3px 3px 7px var(--sh-dark),
+    0 0 0 4px color-mix(in srgb, var(--brand) 35%, transparent);
 }
 input[type='range'].slider:focus-visible::-moz-range-thumb {
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand) 35%, transparent);
 }
 
-/* ---------- Overlay motion (subtle) ---------- */
+/* ---------- Motion (subtle) ---------- */
 @keyframes drawer-in {
   from {
     transform: translateX(16px);
@@ -186,9 +331,23 @@ input[type='range'].slider:focus-visible::-moz-range-thumb {
 .fade-in {
   animation: fade-in 0.15s ease-out both;
 }
+@keyframes stage-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.stage-in {
+  animation: stage-in 0.2s ease-out both;
+}
 @media (prefers-reduced-motion: reduce) {
   .drawer-in,
-  .fade-in {
+  .fade-in,
+  .stage-in {
     animation: none;
   }
 }
@@ -208,10 +367,10 @@ input[type='range'].slider:focus-visible::-moz-range-thumb {
     color-scheme: light;
     --bg: #ffffff;
     --surface: #ffffff;
-    --surface-2: #f1f3f5;
+    --surface-2: #f3f5f8;
     --surface-3: #ffffff;
     --fg: #111827;
-    --fg-2: #667085;
+    --fg-2: #5b6576;
     --fg-3: #98a2b3;
     --line: #e4e7ec;
     --line-strong: #d0d5dd;
@@ -227,6 +386,7 @@ input[type='range'].slider:focus-visible::-moz-range-thumb {
     break-inside: avoid;
   }
   * {
+    box-shadow: none !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }

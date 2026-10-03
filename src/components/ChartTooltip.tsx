@@ -10,7 +10,7 @@ export interface TooltipRow {
 export function ChartTooltip({ active, title, rows }: { active?: boolean; title?: ReactNode; rows: TooltipRow[] }) {
   if (!active || rows.length === 0) return null
   return (
-    <div className="min-w-[160px] rounded-lg border border-line bg-surface-3 px-3 py-2 text-[12px] shadow-[var(--shadow-overlay)]">
+    <div className="min-w-[160px] rounded-xl border border-[var(--edge)] bg-surface-3 px-3 py-2 text-[12px] shadow-[var(--shadow-overlay)]">
       {title !== undefined && <div className="mb-1 font-medium text-fg">{title}</div>}
       <div className="space-y-0.5">
         {rows.map((r) => (

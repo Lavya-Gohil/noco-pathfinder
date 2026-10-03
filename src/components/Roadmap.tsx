@@ -18,13 +18,13 @@ function Marker({ n, muted, last }: { n: number; muted?: boolean; last?: boolean
     <div className="relative flex flex-col items-center" aria-hidden>
       <span
         className={cx(
-          'tnum z-10 grid h-7 w-7 place-items-center rounded-full border text-[11px] font-medium',
-          muted ? 'border-dashed border-line-strong bg-surface text-fg-3' : 'border-brand bg-brand-soft text-brand-text',
+          'tnum z-10 grid h-8 w-8 place-items-center rounded-full text-[11px] font-semibold',
+          muted ? 'neu-inset-sm text-fg-3' : 'neu-raised-sm text-brand-text',
         )}
       >
         {pad(n)}
       </span>
-      {!last && <span className={cx('w-px flex-1', muted ? 'bg-line' : 'bg-line-strong')} />}
+      {!last && <span className={cx('my-1 w-[3px] flex-1 rounded-full', muted ? 'neu-inset-sm opacity-60' : 'neu-inset-sm')} />}
     </div>
   )
 }
@@ -36,7 +36,7 @@ export function Roadmap({ plan, base, future }: { plan: PlanResult; base: Baseli
       {plan.steps.map((s, i) => {
         const capital = s.effects.reduce((a, e) => a + Math.max(0, e.capitalImpact), 0)
         return (
-          <li key={s.id} className="grid grid-cols-[28px_minmax(0,1fr)] gap-x-4">
+          <li key={s.id} className="grid grid-cols-[32px_minmax(0,1fr)] gap-x-4">
             <Marker n={s.phase} last={i === total - 1} />
             <div className="pb-6">
               <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
@@ -59,7 +59,7 @@ export function Roadmap({ plan, base, future }: { plan: PlanResult; base: Baseli
         )
       })}
       {future.map((f, i) => (
-        <li key={f.id} className="grid grid-cols-[28px_minmax(0,1fr)] gap-x-4 print:hidden">
+        <li key={f.id} className="grid grid-cols-[32px_minmax(0,1fr)] gap-x-4 print:hidden">
           <Marker n={plan.steps.length + i + 1} muted last={plan.steps.length + i === total - 1} />
           <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 pb-5 pt-1">
             <span className="text-[13px] text-fg-2">{MEASURES[f.id].name}</span>

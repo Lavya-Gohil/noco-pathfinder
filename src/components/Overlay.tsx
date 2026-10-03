@@ -43,7 +43,7 @@ export function Drawer({
   return createPortal(
     <div className="fixed inset-0 z-50 print:hidden" role="dialog" aria-modal="true" aria-label={title}>
       <div className="fade-in absolute inset-0 bg-[rgba(13,17,23,0.45)]" onClick={onClose} />
-      <div className="drawer-in absolute inset-y-0 right-0 flex w-full max-w-[480px] flex-col border-l border-line bg-surface-3 shadow-[var(--shadow-overlay)]">
+      <div className="drawer-in absolute inset-y-0 right-0 flex w-full max-w-[480px] flex-col border-l border-[var(--edge)] bg-[image:var(--raise-bg)] shadow-[var(--shadow-overlay)]">
         <div className="flex items-start justify-between gap-4 border-b border-line px-6 py-4">
           <div className="min-w-0">
             <h2 className="text-[16px] font-semibold text-fg">{title}</h2>
@@ -53,10 +53,10 @@ export function Drawer({
             ref={closeRef}
             type="button"
             onClick={onClose}
-            className="-mr-1.5 rounded-md p-1.5 text-fg-2 transition-colors duration-150 hover:bg-surface-2 hover:text-fg"
+            className="neu-btn grid h-8 w-8 place-items-center rounded-lg text-fg-2 hover:text-fg"
             aria-label="Close panel"
           >
-            <X className="h-4 w-4" />
+            <X className="h-4 w-4" aria-hidden />
           </button>
         </div>
         <div className="flex-1 overflow-y-auto px-6 py-5">{children}</div>

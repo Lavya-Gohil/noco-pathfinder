@@ -1,36 +1,56 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Header, type StepId } from './components/Header'
+import { Tour } from './components/Tour'
 import { buildBaseline } from './engine/baseline'
 import { dataConfidence } from './engine/confidence'
 import { opportunityLabel, signals } from './engine/explanations'
 import { optimize, recommendedPath } from './engine/optimizer'
 import { DiagnosisPage } from './pages/DiagnosisPage'
 import { IntakePage } from './pages/IntakePage'
+import { PrivacyPage } from './pages/PrivacyPage'
 import { ReportPage } from './pages/ReportPage'
 import { StrategyPage } from './pages/StrategyPage'
+import { TOUR_STEPS } from './tour/steps'
 import type { Building, BuildingForm, PathId, Scenario } from './types'
-import { EMPTY_FORM, toBuilding } from './utils/building'
+import { DEMO_FORM, EMPTY_FORM, toBuilding, validate } from './utils/building'
 
 const ORDER: StepId[] = ['intake', 'diagnosis', 'strategy', 'report']
 const DEFAULT_INCENTIVE = 0.15
+const REPO = 'https://github.com/Lavya-Gohil/noco-pathfinder'
+type Subs = Record<'intake' | 'diagnosis' | 'strategy', number>
+const FIRST_STAGES: Subs = { intake: 0, diagnosis: 0, strategy: 0 }
+
+const sameForm = (a: BuildingForm, b: BuildingForm) =>
+  (Object.keys(a) as (keyof BuildingForm)[]).every((k) => String(a[k]).replace(/,/g, '') === String(b[k]).replace(/,/g, ''))
 
 export default function App() {
   const [step, setStep] = useState<StepId>('intake')
   const [maxStep, setMaxStep] = useState(0)
+  const [subs, setSubs] = useState<Subs>(FIRST_STAGES)
   const [form, setForm] = useState<BuildingForm>(EMPTY_FORM)
   const [building, setBuilding] = useState<Building | null>(null)
   const [scenario, setScenario] = useState<Scenario>({ budget: 250_000, elecPriceChange: 0, incentiveRate: DEFAULT_INCENTIVE })
   const [selected, setSelected] = useState<PathId>('balanced')
+  const [tourIndex, setTourIndex] = useState<number | null>(null)
+  const [hash, setHash] = useState(() => window.location.hash)
 
-  const go = (s: StepId) => {
-    const i = ORDER.indexOf(s)
-    setStep(s)
-    setMaxStep((m) => Math.max(m, i))
-  }
+  useEffect(() => {
+    const on = () => setHash(window.location.hash)
+    window.addEventListener('hashchange', on)
+    return () => window.removeEventListener('hashchange', on)
+  }, [])
+  const showPrivacy = hash === '#/privacy'
 
   useEffect(() => {
     window.scrollTo({ top: 0 })
-  }, [step])
+  }, [step, showPrivacy])
+
+  const go = (s: StepId) => {
+    if (showPrivacy) window.location.hash = '#/'
+    setStep(s)
+    setMaxStep((m) => Math.max(m, ORDER.indexOf(s)))
+  }
+  const setSub = (page: keyof Subs) => (i: number) => setSubs((p) => ({ ...p, [page]: i }))
 
   // Diagnosis is always shown at today's prices; strategy uses the what-if scenario.
   const diagBase = useMemo(() => (building ? buildBaseline(building, 0) : null), [building])
@@ -46,49 +66,132 @@ export default function App() {
     return { signals: signals(diagBase), opportunity: opportunityLabel(full.savingsShare) }
   }, [diagBase])
 
-  const analyze = () => {
-    const b = toBuilding(form)
+  /** Build the model from a form (falls back to the demo if the form is invalid). */
+  const runAnalysis = (f: BuildingForm) => {
+    const source = Object.keys(validate(f)).length === 0 ? f : DEMO_FORM
+    if (source !== f) setForm(DEMO_FORM)
+    const b = toBuilding(source)
     setBuilding(b)
     setScenario({ budget: b.budget, elecPriceChange: 0, incentiveRate: DEFAULT_INCENTIVE })
     setSelected(recommendedPath(b.objective))
+    setSubs((p) => ({ ...p, diagnosis: 0, strategy: 0 }))
+  }
+
+  const analyze = () => {
+    runAnalysis(form)
     setMaxStep(1)
     go('diagnosis')
+  }
+
+  // ---- Guided tour ----
+  const tourGo = (i: number) => {
+    const st = TOUR_STEPS[i]
+    if (st.page !== 'intake' && !building) runAnalysis(form)
+    if (st.sub !== undefined && st.page !== 'report') setSubs((p) => ({ ...p, [st.page]: st.sub }))
+    go(st.page)
+    setTourIndex(i)
+  }
+
+  const startTour = () => {
+    if (!sameForm(form, EMPTY_FORM) && !sameForm(form, DEMO_FORM)) {
+      const ok = window.confirm('The guided tour loads a sample building and replaces the information in the form. Continue?')
+      if (!ok) return
+    }
+    if (showPrivacy) window.location.hash = '#/'
+    setForm(DEMO_FORM)
+    setBuilding(null)
+    setSubs(FIRST_STAGES)
+    setMaxStep(0)
+    setStep('intake')
+    setTourIndex(0)
   }
 
   const strategy = result?.strategies.find((s) => s.id === selected) ?? null
 
   return (
     <div className="min-h-screen bg-bg print:bg-white">
-      <Header step={step} maxStep={building ? maxStep : 0} onNavigate={go} buildingName={building?.name} />
+      <Header
+        step={step}
+        maxStep={building ? maxStep : 0}
+        onNavigate={go}
+        buildingName={building?.name}
+        onTour={startTour}
+        inApp={!showPrivacy}
+      />
       <main className="mx-auto max-w-[1320px] px-4 py-8 sm:px-6 lg:px-8 lg:py-10 print:max-w-none print:p-0">
-        {step === 'intake' && <IntakePage form={form} setForm={setForm} onSubmit={analyze} />}
-        {step === 'diagnosis' && diagBase && confidence && diagnosis && (
-          <DiagnosisPage
-            base={diagBase}
-            confidence={confidence}
-            opportunity={diagnosis.opportunity}
-            signals={diagnosis.signals}
-            onNext={() => go('strategy')}
-          />
-        )}
-        {step === 'strategy' && base && result && (
-          <StrategyPage
-            base={base}
-            scenario={scenario}
-            setScenario={setScenario}
-            result={result}
-            selected={selected}
-            setSelected={setSelected}
-            onReport={() => go('report')}
-          />
-        )}
-        {step === 'report' && base && strategy && confidence && (
-          <ReportPage base={base} strategy={strategy} confidence={confidence} scenario={scenario} onBack={() => go('strategy')} />
+        {showPrivacy ? (
+          <PrivacyPage />
+        ) : (
+          <>
+            {step === 'intake' && (
+              <IntakePage
+                form={form}
+                setForm={setForm}
+                onSubmit={analyze}
+                sub={subs.intake}
+                setSub={setSub('intake')}
+                onStartTour={startTour}
+              />
+            )}
+            {step === 'diagnosis' && diagBase && confidence && diagnosis && (
+              <DiagnosisPage
+                base={diagBase}
+                confidence={confidence}
+                opportunity={diagnosis.opportunity}
+                signals={diagnosis.signals}
+                onNext={() => {
+                  setSubs((p) => ({ ...p, strategy: 0 }))
+                  go('strategy')
+                }}
+                onBack={() => go('intake')}
+                sub={subs.diagnosis}
+                setSub={setSub('diagnosis')}
+              />
+            )}
+            {step === 'strategy' && base && result && (
+              <StrategyPage
+                base={base}
+                scenario={scenario}
+                setScenario={setScenario}
+                result={result}
+                selected={selected}
+                setSelected={setSelected}
+                onReport={() => go('report')}
+                onBack={() => {
+                  setSubs((p) => ({ ...p, diagnosis: 2 }))
+                  go('diagnosis')
+                }}
+                sub={subs.strategy}
+                setSub={setSub('strategy')}
+              />
+            )}
+            {step === 'report' && base && strategy && confidence && (
+              <ReportPage base={base} strategy={strategy} confidence={confidence} scenario={scenario} onBack={() => go('strategy')} />
+            )}
+          </>
         )}
       </main>
-      <footer className="mx-auto max-w-[1320px] px-4 pb-8 text-[12px] text-fg-3 sm:px-6 lg:px-8 print:hidden">
-        NOCO Pathfinder · Illustrative pre-audit estimates. Site verification required.
+      <footer className="mx-auto flex max-w-[1320px] flex-col gap-2 px-4 pb-8 text-[12px] text-fg-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8 print:hidden">
+        <span>NOCO Pathfinder · Illustrative pre-audit estimates. Site verification required.</span>
+        <nav aria-label="Footer" className="flex gap-4">
+          <a href="#/privacy" className="hover:text-fg">
+            Privacy policy
+          </a>
+          <a href={REPO} target="_blank" rel="noreferrer" className="hover:text-fg">
+            GitHub
+          </a>
+        </nav>
       </footer>
+
+      {tourIndex !== null && !showPrivacy && (
+        <Tour
+          steps={TOUR_STEPS}
+          index={tourIndex}
+          onNext={() => (tourIndex < TOUR_STEPS.length - 1 ? tourGo(tourIndex + 1) : setTourIndex(null))}
+          onBack={() => tourIndex > 0 && tourGo(tourIndex - 1)}
+          onClose={() => setTourIndex(null)}
+        />
+      )}
     </div>
   )
 }
