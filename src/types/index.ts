@@ -34,6 +34,10 @@ export interface BuildingForm {
   elecCost: string
   heatCost: string
   kwh: string
+  /** 12 monthly kWh values, Jan–Dec (all blank or all filled). */
+  monthly: string[]
+  /** Year the main HVAC equipment was installed. */
+  hvacYear: string
   budget: string
   objective: Objective
 }
@@ -51,6 +55,9 @@ export interface Building {
   elecCost: number
   heatCost: number
   kwh: number | null
+  /** 12 monthly kWh values, Jan–Dec, when provided. */
+  monthlyKwh: number[] | null
+  hvacYear: number | null
   budget: number
   objective: Objective
 }

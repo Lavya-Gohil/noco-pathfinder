@@ -45,7 +45,9 @@ export function AssumptionsDrawer({
             ['Building', `${b.type}, ${num(b.sqft)} sq ft`],
             ['Year built', b.yearBuilt ? String(b.yearBuilt) : 'Not provided (1990 assumed)'],
             ['Systems', `${b.heating} / ${b.cooling}`],
-            ['Electricity', `${money(b.elecCost)} · ${base.kwhEstimated ? 'kWh not provided' : `${num(b.kwh)} kWh`}`],
+            ['Electricity', `${money(b.elecCost)} · ${base.kwhEstimated ? 'kWh not provided' : `${num(base.elecKwh)} kWh`}`],
+            ['Monthly usage', b.monthlyKwh ? '12 months provided' : 'Not provided'],
+            ['HVAC equipment installed', b.hvacYear ? String(b.hvacYear) : 'Not provided (building age used)'],
             ['Heating', money(b.heatCost)],
             ['Budget (scenario)', money(scenario.budget)],
             ['Electricity price change', signedPct(scenario.elecPriceChange)],
@@ -62,6 +64,7 @@ export function AssumptionsDrawer({
             ['Natural gas', base.heatFuel === 'gas' ? `$${GAS_PRICE_PER_THERM.toFixed(2)}/therm` : 'Electric heat'],
             ['Grid emissions', `${(GRID_T_PER_KWH * 1000).toFixed(2)} t CO₂e/MWh`],
             ['Gas emissions', `${GAS_T_PER_THERM} t CO₂e/therm`],
+            ['Cooling share of electricity', `${pct(base.coolingShare)} (${base.coolingMeasured ? 'measured from summer bills' : 'estimated from building type'})`],
             ['Cooling capacity', `~${num(base.designTons)} tons`],
             ['Usable roof for solar', `~${num(base.roofKw)} kW`],
           ]}

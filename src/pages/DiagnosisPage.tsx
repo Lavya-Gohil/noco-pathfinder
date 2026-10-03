@@ -1,10 +1,10 @@
-import { Check, Minus } from 'lucide-react'
+import { ArrowRight, Check, Minus } from 'lucide-react'
 import { Bar, BarChart, CartesianGrid, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import type { Baseline } from '../engine/baseline'
-import type { DataConfidence } from '../engine/confidence'
+import type { DataConfidence, DataField } from '../engine/confidence'
 import type { Signal } from '../engine/explanations'
 import { useChartPalette } from '../theme'
-import { EstimateNote, KpiGrid, KpiTile, MetaRow, PageHeader, Panel, cx } from '../components/ui'
+import { Button, EstimateNote, KpiGrid, KpiTile, MetaRow, PageHeader, Panel, cx } from '../components/ui'
 import { ChartTooltip } from '../components/ChartTooltip'
 import { StageFooter, StageNav } from '../components/Stages'
 import { money, moneyCents, moneyShort, num, pct } from '../utils/format'
@@ -20,6 +20,7 @@ export function DiagnosisPage({
   onBack,
   sub,
   setSub,
+  onImprove,
 }: {
   base: Baseline
   confidence: DataConfidence
@@ -29,6 +30,8 @@ export function DiagnosisPage({
   onBack: () => void
   sub: number
   setSub: (i: number) => void
+  /** Jump to the intake field that supplies a missing data point. */
+  onImprove: (field: DataField) => void
 }) {
   const b = base.building
   const c = useChartPalette()
@@ -71,7 +74,13 @@ export function DiagnosisPage({
               <KpiTile
                 label="Electricity use"
                 value={`${num(base.elecKwh)} kWh`}
-                sub={base.kwhEstimated ? `Estimated at $${base.elecPriceBase.toFixed(2)}/kWh` : `Reported · $${base.elecPriceBase.toFixed(3)}/kWh effective`}
+                sub={
+                  base.kwhEstimated
+                    ? `Estimated at $${base.elecPriceBase.toFixed(2)}/kWh`
+                    : base.coolingMeasured
+                      ? `12 months of bills · $${base.elecPriceBase.toFixed(3)}/kWh`
+                      : `Reported · $${base.elecPriceBase.toFixed(3)}/kWh effective`
+                }
               />
               <KpiTile label="Retrofit opportunity" value={opportunity.label} sub={`${opportunity.detail} with all five measures`} />
             </KpiGrid>
@@ -158,6 +167,11 @@ export function DiagnosisPage({
                   <span className="text-[22px] font-semibold text-brand-text">{next.scoreAfter}%</span>
                   <span className="text-[12px] text-fg-3">estimated confidence</span>
                 </div>
+                {next.field && (
+                  <Button size="sm" className="mt-4" onClick={() => onImprove(next.field!)} tour="diag-improve">
+                    Add this data <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+                  </Button>
+                )}
                 {confidence.others.length > 0 && (
                   <dl className="mt-5 space-y-1.5 border-t border-line pt-4 text-[13px]">
                     {confidence.others.slice(0, 2).map((o) => (

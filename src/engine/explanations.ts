@@ -30,12 +30,16 @@ export function signals(base: Baseline): Signal[] {
   const out: Signal[] = []
   const lightingShare = base.elecKwh > 0 ? base.lightingKwh / base.elecKwh : 0
 
-  if (base.year <= 2010 || b.heating === 'Electric Resistance') {
+  if ((b.hvacYear ?? base.year) <= 2010 || b.heating === 'Electric Resistance') {
     out.push({
       kind: 'hvac',
       title: 'Aging HVAC',
       text: "Your building's HVAC system may be approaching a point where efficiency improvements could create meaningful savings.",
-      metric: b.yearBuilt ? `Building age ${base.age} yrs · ${b.heating}` : `${b.heating} · age unverified`,
+      metric: b.hvacYear
+        ? `Equipment installed ${b.hvacYear} · ${b.heating}`
+        : b.yearBuilt
+          ? `Building age ${base.age} yrs · ${b.heating}`
+          : `${b.heating} · age unverified`,
     })
   }
   if (base.year < 2005) {

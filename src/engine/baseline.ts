@@ -70,6 +70,9 @@ export interface Baseline {
   heatFuel: 'gas' | 'electric'
   elecKwh: number
   kwhEstimated: boolean
+  /** True when the cooling share comes from monthly bills rather than the building-type profile. */
+  coolingMeasured: boolean
+  coolingShare: number
   elecCost: number
   heatCost: number
   heatUnits: number
@@ -88,6 +91,21 @@ export interface Baseline {
   baselineMmbtu: number
 }
 
+/**
+ * Cooling share measured from 12 monthly bills: the summer (May–Sep) usage above the
+ * building's base load, where base load is the average of the three lowest months.
+ * Returns null when monthly data is missing or the building has no cooling.
+ */
+export function measuredCoolingShare(b: Building): number | null {
+  const m = b.monthlyKwh
+  if (!m || m.length !== 12 || b.cooling === 'None') return null
+  const total = m.reduce((a, v) => a + v, 0)
+  if (total <= 0) return null
+  const base = [...m].sort((x, y) => x - y).slice(0, 3).reduce((a, v) => a + v, 0) / 3
+  const summer = m.slice(4, 9).reduce((a, v) => a + Math.max(0, v - base), 0)
+  return clamp(summer / total, 0.03, 0.5)
+}
+
 export function buildBaseline(b: Building, elecPriceChange = 0): Baseline {
   const climate = climateFor(b.state)
   const year = b.yearBuilt ?? DEFAULT_YEAR
@@ -95,9 +113,12 @@ export function buildBaseline(b: Building, elecPriceChange = 0): Baseline {
   const profile = TYPE_PROFILES[b.type]
   const priceMult = 1 + clamp(elecPriceChange, -0.2, 0.5)
 
-  const kwhEstimated = !(b.kwh && b.kwh > 0)
-  const elecPriceBase = kwhEstimated ? DEFAULT_ELEC_PRICE : clamp(b.elecCost / (b.kwh as number), 0.04, 0.6)
-  const elecKwh = kwhEstimated ? b.elecCost / DEFAULT_ELEC_PRICE : (b.kwh as number)
+  // Annual kWh: as reported, else the sum of the monthly bills, else estimated from cost.
+  const monthlySum = b.monthlyKwh ? b.monthlyKwh.reduce((a, v) => a + v, 0) : 0
+  const reportedKwh = b.kwh && b.kwh > 0 ? b.kwh : monthlySum > 0 ? monthlySum : null
+  const kwhEstimated = reportedKwh === null
+  const elecPriceBase = kwhEstimated ? DEFAULT_ELEC_PRICE : clamp(b.elecCost / (reportedKwh as number), 0.04, 0.6)
+  const elecKwh = kwhEstimated ? b.elecCost / DEFAULT_ELEC_PRICE : (reportedKwh as number)
   const elecPrice = elecPriceBase * priceMult
   const elecCost = elecKwh * elecPrice
 
@@ -110,7 +131,8 @@ export function buildBaseline(b: Building, elecPriceChange = 0): Baseline {
   // Electric end-use split
   const olderFixtures = year < 2000 ? 0.03 : 0
   const lightingShare = profile.lighting + olderFixtures
-  const coolingShare = b.cooling === 'None' ? 0.06 : profile.cooling * COOL_CLIMATE[climate]
+  const measured = measuredCoolingShare(b)
+  const coolingShare = measured ?? (b.cooling === 'None' ? 0.06 : profile.cooling * COOL_CLIMATE[climate])
   const plugShare = profile.plug
   const otherShare = Math.max(0.05, 1 - lightingShare - coolingShare - plugShare)
   const norm = lightingShare + coolingShare + plugShare + otherShare
@@ -151,6 +173,8 @@ export function buildBaseline(b: Building, elecPriceChange = 0): Baseline {
     heatFuel,
     elecKwh: nonNeg(elecKwh),
     kwhEstimated,
+    coolingMeasured: measured !== null,
+    coolingShare: coolingKwh / Math.max(1, elecKwh),
     elecCost: nonNeg(elecCost),
     heatCost: nonNeg(heatCost),
     heatUnits: nonNeg(heatUnits),

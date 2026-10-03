@@ -197,7 +197,9 @@ export function hvacFractions(base: Baseline): { heat: number; cool: number } {
   const cool = { 'Rooftop Units': 0.28, 'Central AC': 0.25, 'Heat Pump': 0.18, None: 0, 'Not Sure': 0.22 }[
     base.building.cooling
   ]
-  const ageMult = base.building.yearBuilt === null ? 1 : base.year < 1995 ? 1.15 : base.year < 2010 ? 1 : 0.6
+  // Equipment age drives the efficiency gap: use the install year when known, else the building's.
+  const eqYear = base.building.hvacYear ?? base.building.yearBuilt
+  const ageMult = eqYear === null ? 1 : eqYear < 1995 ? 1.15 : eqYear < 2010 ? 1 : 0.6
   return { heat: Math.min(0.6, heat * ageMult), cool: Math.min(0.4, cool * ageMult) }
 }
 
@@ -216,10 +218,11 @@ export function measureConfidence(id: MeasureId, base: Baseline): ConfidenceLeve
     case 'envelope':
       return b.yearBuilt === null ? 'Low' : 'Medium'
     case 'hvac':
-      return hvacKnown && b.yearBuilt !== null ? 'Medium' : 'Low'
+      if (!hvacKnown) return 'Low'
+      return b.hvacYear !== null && base.coolingMeasured ? 'High' : b.hvacYear !== null || b.yearBuilt !== null ? 'Medium' : 'Low'
     case 'controls':
       return 'Medium'
     case 'solar':
-      return base.kwhEstimated ? 'Low' : 'Medium'
+      return base.kwhEstimated ? 'Low' : b.monthlyKwh ? 'High' : 'Medium'
   }
 }

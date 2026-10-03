@@ -12,6 +12,9 @@ export const DEMO_FORM: BuildingForm = {
   elecCost: '118000',
   heatCost: '54000',
   kwh: '720000',
+  // Buffalo office with rooftop units: flat-ish shoulder months, summer cooling peak. Sums to 720,000.
+  monthly: ['47000', '44500', '45500', '43000', '58000', '82000', '95000', '92000', '77000', '43500', '45000', '47500'],
+  hvacYear: '1994',
   budget: '250000',
   objective: 'Balanced',
 }
@@ -28,6 +31,8 @@ export const EMPTY_FORM: BuildingForm = {
   elecCost: '',
   heatCost: '',
   kwh: '',
+  monthly: Array(12).fill(''),
+  hvacYear: '',
   budget: '',
   objective: 'Balanced',
 }
@@ -49,6 +54,8 @@ export function parseNum(v: string): number {
 }
 
 export type FormErrors = Partial<Record<keyof BuildingForm, string>>
+
+export const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 export function validate(f: BuildingForm): FormErrors {
   const e: FormErrors = {}
@@ -91,6 +98,26 @@ export function validate(f: BuildingForm): FormErrors {
     }
   }
 
+  if (f.hvacYear.trim()) {
+    const y = parseNum(f.hvacYear)
+    if (!Number.isInteger(y) || y < 1950 || y > 2026) e.hvacYear = 'Enter a year between 1950 and 2026'
+  }
+
+  const filled = f.monthly.filter((m) => m.trim() !== '')
+  if (filled.length > 0) {
+    const vals = f.monthly.map(parseNum)
+    if (filled.length < 12) e.monthly = `Enter all 12 months or leave them blank (${filled.length} of 12 entered)`
+    else if (vals.some((v) => !Number.isFinite(v) || v <= 0)) e.monthly = 'Each month must be a positive number'
+    else {
+      const sum = vals.reduce((a, v) => a + v, 0)
+      const annual = parseNum(f.kwh)
+      if (Number.isFinite(annual) && annual > 0 && Math.abs(sum - annual) / annual > 0.1)
+        e.monthly = `Months add up to ${Math.round(sum).toLocaleString('en-US')} kWh, more than 10% away from the annual figure`
+      else if (Number.isFinite(elec) && elec > 0 && (elec / sum < 0.04 || elec / sum > 0.6))
+        e.monthly = `Implies $${(elec / sum).toFixed(2)}/kWh. Check the monthly values and the electricity cost`
+    }
+  }
+
   const budget = parseNum(f.budget)
   if (!Number.isFinite(budget)) e.budget = 'Enter a project budget'
   else if (budget < BUDGET_MIN || budget > BUDGET_MAX) e.budget = 'Between $25,000 and $1,000,000'
@@ -101,6 +128,9 @@ export function validate(f: BuildingForm): FormErrors {
 export function toBuilding(f: BuildingForm): Building {
   const year = f.yearBuilt.trim() ? parseNum(f.yearBuilt) : NaN
   const kwh = f.kwh.trim() ? parseNum(f.kwh) : NaN
+  const months = f.monthly.map(parseNum)
+  const monthlyKwh = months.length === 12 && months.every((v) => Number.isFinite(v) && v > 0) ? months : null
+  const hvacYear = f.hvacYear.trim() ? parseNum(f.hvacYear) : NaN
   return {
     name: f.name.trim(),
     city: f.city.trim(),
@@ -113,6 +143,8 @@ export function toBuilding(f: BuildingForm): Building {
     elecCost: parseNum(f.elecCost),
     heatCost: parseNum(f.heatCost),
     kwh: Number.isFinite(kwh) && kwh > 0 ? kwh : null,
+    monthlyKwh,
+    hvacYear: Number.isFinite(hvacYear) ? hvacYear : null,
     budget: parseNum(f.budget),
     objective: f.objective,
   }

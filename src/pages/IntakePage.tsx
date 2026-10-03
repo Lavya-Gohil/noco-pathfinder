@@ -8,7 +8,7 @@ import {
   type BuildingForm,
   type Objective,
 } from '../types'
-import { EMPTY_FORM, US_STATES, groupDigits, validate, type FormErrors } from '../utils/building'
+import { EMPTY_FORM, MONTHS, US_STATES, groupDigits, parseNum, validate, type FormErrors } from '../utils/building'
 import { Button, PageHeader, cx } from '../components/ui'
 import { StageNav } from '../components/Stages'
 import { money } from '../utils/format'
@@ -31,12 +31,12 @@ export const INTAKE_SECTIONS: { title: string; description: string; fields: (key
   {
     title: 'Building systems',
     description: 'Primary heating and cooling equipment. Choose “Not Sure” if unknown — it only lowers confidence.',
-    fields: ['heating', 'cooling'],
+    fields: ['heating', 'cooling', 'hvacYear'],
   },
   {
     title: 'Energy',
-    description: 'Annual utility spend from the last 12 months of bills. Usage in kWh improves accuracy.',
-    fields: ['elecCost', 'heatCost', 'kwh'],
+    description: 'Utility spend from the last 12 months of bills. Monthly usage gives the most accurate results.',
+    fields: ['elecCost', 'heatCost', 'kwh', 'monthly'],
   },
   {
     title: 'Planning',
@@ -56,7 +56,9 @@ function summary(f: BuildingForm, i: number): string {
     case 1:
       return [f.heating, f.cooling].filter(Boolean).join(' / ')
     case 2:
-      return f.elecCost ? `${money(Number(f.elecCost.replace(/\D/g, '')))} electric` : ''
+      return f.elecCost
+        ? `${money(Number(f.elecCost.replace(/\D/g, '')))} electric${f.monthly.every((m) => m.trim()) ? ' · 12 months' : ''}`
+        : ''
     default:
       return f.budget ? `${money(Number(f.budget.replace(/\D/g, '')))} · ${f.objective}` : ''
   }
@@ -347,6 +349,25 @@ export function IntakePage({
                 <Field label="Cooling" error={errors.cooling} htmlFor="f-cooling">
                   {select('cooling', COOLING_SYSTEMS)}
                 </Field>
+                <Field
+                  label="HVAC equipment installed"
+                  optional
+                  error={errors.hvacYear}
+                  hint="Year the main heating and cooling units were installed. Adds 6 confidence points."
+                  htmlFor="f-hvacYear"
+                >
+                  <input
+                    id="f-hvacYear"
+                    inputMode="numeric"
+                    maxLength={4}
+                    aria-invalid={Boolean(errors.hvacYear)}
+                    aria-describedby={errors.hvacYear ? 'f-hvacYear-err' : undefined}
+                    className={cx(control, 'tnum')}
+                    value={form.hvacYear}
+                    placeholder="1994"
+                    onChange={(e) => set('hvacYear', e.target.value.replace(/\D/g, ''))}
+                  />
+                </Field>
               </div>
             )}
 
@@ -361,6 +382,48 @@ export function IntakePage({
                 <Field label="Electricity usage" optional error={errors.kwh} hint="Improves data confidence" htmlFor="f-kwh">
                   {num('kwh', '720,000', { suffix: 'kWh / yr' })}
                 </Field>
+                <fieldset className="sm:col-span-2" aria-describedby={errors.monthly ? 'f-monthly-err' : 'f-monthly-hint'}>
+                  <legend className="mb-2 flex flex-wrap items-baseline gap-x-1.5 text-[13px] font-medium text-fg">
+                    Monthly electricity usage <span className="font-normal text-fg-3">Optional · kWh per month</span>
+                  </legend>
+                  <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-4 lg:grid-cols-6">
+                    {MONTHS.map((mo, i) => (
+                      <label key={mo} className="block">
+                        <span className="mb-1 block text-[11px] font-medium text-fg-2">{mo}</span>
+                        <input
+                          id={i === 0 ? 'f-monthly' : `f-monthly-${i}`}
+                          inputMode="numeric"
+                          autoComplete="off"
+                          aria-invalid={Boolean(errors.monthly)}
+                          className={cx(control, 'tnum h-10 px-2.5 text-[13px]')}
+                          value={groupDigits(form.monthly[i] ?? '')}
+                          onChange={(e) => {
+                            const next = [...form.monthly]
+                            next[i] = groupDigits(e.target.value)
+                            set('monthly', next)
+                          }}
+                          onPaste={(e) => {
+                            // Paste a column or row of 12 values (e.g. from a spreadsheet) to fill every month.
+                            const vals = e.clipboardData.getData('text').split(/[\s,;\t]+/).map((v) => v.replace(/[^\d.]/g, '')).filter(Boolean)
+                            if (vals.length >= 12 && vals.slice(0, 12).every((v) => Number.isFinite(parseNum(v)))) {
+                              e.preventDefault()
+                              set('monthly', vals.slice(0, 12).map((v) => groupDigits(String(Math.round(parseNum(v))))))
+                            }
+                          }}
+                        />
+                      </label>
+                    ))}
+                  </div>
+                  {errors.monthly ? (
+                    <p id="f-monthly-err" className="mt-1.5 text-[12px] text-neg" role="alert">
+                      {errors.monthly}
+                    </p>
+                  ) : (
+                    <p id="f-monthly-hint" className="mt-1.5 text-[12px] text-fg-3">
+                      From your last 12 bills. Paste 12 values from a spreadsheet into any box. Adds 17 confidence points and measures your real cooling load.
+                    </p>
+                  )}
+                </fieldset>
               </div>
             )}
 

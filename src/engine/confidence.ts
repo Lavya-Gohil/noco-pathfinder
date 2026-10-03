@@ -11,7 +11,11 @@ export interface ConfidenceFactor {
   have: boolean
 }
 
+/** Intake field that supplies a data point, so the UI can jump straight to it. */
+export type DataField = 'monthly' | 'hvac' | 'year'
+
 export interface NextDataPoint {
+  field?: DataField
   label: string
   why: string
   gain: number
@@ -35,6 +39,7 @@ export function levelFor(score: number): DataConfidenceLevel {
 }
 
 export function dataConfidence(b: Building): DataConfidence {
+  const hasMonthly = b.monthlyKwh !== null
   const factors: ConfidenceFactor[] = [
     { label: 'Building type', points: 8, have: Boolean(b.type) },
     { label: 'Square footage', points: 8, have: b.sqft > 0 },
@@ -42,33 +47,38 @@ export function dataConfidence(b: Building): DataConfidence {
     { label: 'Heating system', points: 6, have: b.heating !== 'Not Sure' },
     { label: 'Cooling system', points: 6, have: b.cooling !== 'Not Sure' },
     { label: 'Annual utility costs', points: 8, have: b.elecCost > 0 },
-    { label: 'Annual electricity use (kWh)', points: 5, have: b.kwh !== null },
+    { label: 'Annual electricity use (kWh)', points: 5, have: b.kwh !== null || hasMonthly },
+    { label: 'HVAC equipment age', points: 6, have: b.hvacYear !== null },
+    { label: '12 months of electricity usage', points: 17, have: hasMonthly },
   ]
   const score = Math.min(100, BASE + factors.filter((f) => f.have).reduce((a, f) => a + f.points, 0))
 
-  // Candidate next data points. Monthly data also supersedes the annual kWh total.
-  const missingKwh = b.kwh === null ? 5 : 0
+  // Candidate next data points. Monthly data also covers the annual kWh total.
+  const missingKwh = b.kwh === null && !hasMonthly ? 5 : 0
   const missingHvac = (b.heating === 'Not Sure' ? 6 : 0) + (b.cooling === 'Not Sure' ? 6 : 0)
   const missingYear = b.yearBuilt === null ? 6 : 0
-  const candidates: Omit<NextDataPoint, 'scoreAfter'>[] = [
+  const candidates: (Omit<NextDataPoint, 'scoreAfter'> & { field?: DataField })[] = [
     {
       label: '12 months of monthly electricity usage',
-      why: 'Monthly usage would improve the accuracy of lighting, HVAC, controls, and solar estimates.',
-      gain: 17 + missingKwh,
+      why: 'Monthly usage shows the real summer cooling load and improves the lighting, HVAC, controls and solar estimates.',
+      gain: hasMonthly ? 0 : 17 + missingKwh,
+      field: 'monthly',
     },
     {
-      label: 'HVAC equipment nameplate data (age, capacity, efficiency)',
-      why: 'Confirms remaining equipment life and the real efficiency gap, the biggest driver of HVAC savings and timing.',
-      gain: 6 + missingHvac,
+      label: 'HVAC equipment age',
+      why: 'The install year of the heating and cooling equipment sets the real efficiency gap, the biggest driver of HVAC savings.',
+      gain: (b.hvacYear === null ? 6 : 0) + missingHvac,
+      field: 'hvac',
     },
     {
       label: 'Year built / major renovation history',
       why: 'Building vintage drives insulation, lighting and HVAC assumptions.',
       gain: missingYear,
+      field: 'year',
     },
     {
-      label: 'On-site walkthrough photos (roof, mechanical room, lighting)',
-      why: 'Lets an assessor validate roof area for solar and spot obvious envelope issues before a full audit.',
+      label: 'On-site walkthrough',
+      why: 'An assessor confirms roof area for solar, insulation levels and lighting before contractor scopes are written.',
       gain: 5,
     },
   ]

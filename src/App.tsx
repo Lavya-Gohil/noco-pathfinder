@@ -216,6 +216,11 @@ export default function App() {
                 onBack={() => go('intake')}
                 sub={subs.diagnosis}
                 setSub={setSub('diagnosis')}
+                onImprove={(field) => {
+                  setSubs((p) => ({ ...p, intake: field === 'monthly' ? 2 : field === 'hvac' ? 1 : 0 }))
+                  go('intake')
+                  window.setTimeout(() => document.getElementById(field === 'monthly' ? 'f-monthly' : field === 'hvac' ? 'f-hvacYear' : 'f-yearBuilt')?.focus(), 80)
+                }}
               />
             )}
             {step === 'strategy' && base && result && (
