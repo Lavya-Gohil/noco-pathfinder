@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
+import { ArrowRight, Compass } from 'lucide-react'
 import { Header, type StepId } from './components/Header'
 import { Tour } from './components/Tour'
+import { Button } from './components/ui'
 import { buildBaseline } from './engine/baseline'
 import { dataConfidence } from './engine/confidence'
 import { opportunityLabel, signals } from './engine/explanations'
@@ -106,7 +108,20 @@ export default function App() {
     setTourIndex(0)
   }
 
+  /** Leave the sample building and start a blank assessment. */
+  const startOwn = () => {
+    if (showPrivacy) window.location.hash = '#/'
+    setTourIndex(null)
+    setForm(EMPTY_FORM)
+    setBuilding(null)
+    setSubs(FIRST_STAGES)
+    setMaxStep(0)
+    setStep('intake')
+    window.scrollTo({ top: 0 })
+  }
+
   const strategy = result?.strategies.find((s) => s.id === selected) ?? null
+  const demoLoaded = sameForm(form, DEMO_FORM)
 
   return (
     <div className="min-h-screen bg-bg print:bg-white">
@@ -119,6 +134,23 @@ export default function App() {
         inApp={!showPrivacy}
       />
       <main className="mx-auto max-w-[1320px] px-4 py-8 sm:px-6 lg:px-8 lg:py-10 print:max-w-none print:p-0">
+        {demoLoaded && tourIndex === null && !showPrivacy && (
+          <div
+            role="region"
+            aria-label="Sample building notice"
+            className="neu-inset mb-6 flex flex-col gap-3 rounded-2xl px-5 py-3 sm:flex-row sm:items-center sm:justify-between print:hidden"
+          >
+            <p className="flex items-center gap-2.5 text-[13px] text-fg-2">
+              <Compass className="h-4 w-4 shrink-0 text-brand-text" aria-hidden />
+              <span>
+                You're exploring a <span className="font-medium text-fg">sample building</span>. Ready to assess your own?
+              </span>
+            </p>
+            <Button size="sm" onClick={startOwn} className="self-start sm:self-auto">
+              Start my own assessment <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+            </Button>
+          </div>
+        )}
         {showPrivacy ? (
           <PrivacyPage />
         ) : (
@@ -190,6 +222,7 @@ export default function App() {
           onNext={() => (tourIndex < TOUR_STEPS.length - 1 ? tourGo(tourIndex + 1) : setTourIndex(null))}
           onBack={() => tourIndex > 0 && tourGo(tourIndex - 1)}
           onClose={() => setTourIndex(null)}
+          onStartOwn={startOwn}
         />
       )}
     </div>

@@ -143,6 +143,6 @@ export const TOUR_STEPS: TourStep[] = [
     page: 'report',
     target: 'report-print',
     title: "You're all set",
-    body: 'Print the report or save it as a PDF. Use the ? button in the header to replay this tour at any time.',
+    body: 'Print the report or save it as a PDF. Ready to try it? Start an assessment for your own building, or keep exploring the sample. The ? button in the header replays this tour.',
   },
 ]

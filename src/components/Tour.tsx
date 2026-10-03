@@ -30,12 +30,15 @@ export function Tour({
   onNext,
   onBack,
   onClose,
+  onStartOwn,
 }: {
   steps: TourStep[]
   index: number
   onNext: () => void
   onBack: () => void
   onClose: () => void
+  /** Final-step call to action: leave the demo and start a real assessment. */
+  onStartOwn: () => void
 }) {
   const step = steps[index]
   const [rect, setRect] = useState<Rect | null>(null)
@@ -117,12 +120,12 @@ export function Tour({
       const t = e.target as HTMLElement
       if (t && (t.tagName === 'INPUT' || t.tagName === 'SELECT' || t.tagName === 'TEXTAREA')) return
       if (e.key === 'Escape') onClose()
-      else if (e.key === 'ArrowRight') onNext()
+      else if (e.key === 'ArrowRight' && !isLast) onNext()
       else if (e.key === 'ArrowLeft' && index > 0) onBack()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [index, onNext, onBack, onClose])
+  }, [index, isLast, onNext, onBack, onClose])
 
   useEffect(() => {
     popRef.current?.focus({ preventScroll: true })
@@ -177,22 +180,37 @@ export function Tour({
           <div className="h-full rounded-full bg-brand transition-[width] duration-200" style={{ width: `${((index + 1) / steps.length) * 100}%` }} />
         </div>
 
-        <div className="mt-4 flex items-center justify-between gap-3">
-          <button type="button" onClick={onClose} className="text-[13px] text-fg-2 hover:text-fg">
-            Skip tour
-          </button>
-          <div className="flex gap-2">
-            {index > 0 && (
+        {isLast ? (
+          <div className="mt-4 space-y-3">
+            <Button onClick={onStartOwn} className="w-full">
+              Start my own assessment <ArrowRight className="h-4 w-4" aria-hidden />
+            </Button>
+            <div className="flex items-center justify-between gap-2">
               <Button variant="secondary" size="sm" onClick={onBack} ariaLabel="Previous step">
                 <ArrowLeft className="h-3.5 w-3.5" aria-hidden />
               </Button>
-            )}
-            <Button size="sm" onClick={isLast ? onClose : onNext}>
-              {isLast ? 'Finish' : 'Next'}
-              {!isLast && <ArrowRight className="h-3.5 w-3.5" aria-hidden />}
-            </Button>
+              <button type="button" onClick={onClose} className="text-[13px] text-fg-2 hover:text-fg">
+                Keep exploring the demo
+              </button>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="mt-4 flex items-center justify-between gap-3">
+            <button type="button" onClick={onClose} className="text-[13px] text-fg-2 hover:text-fg">
+              Skip tour
+            </button>
+            <div className="flex gap-2">
+              {index > 0 && (
+                <Button variant="secondary" size="sm" onClick={onBack} ariaLabel="Previous step">
+                  <ArrowLeft className="h-3.5 w-3.5" aria-hidden />
+                </Button>
+              )}
+              <Button size="sm" onClick={onNext}>
+                Next <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </div>,
     document.body,
