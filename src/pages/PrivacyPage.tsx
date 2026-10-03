@@ -110,7 +110,7 @@ export function PrivacyPage() {
   return (
     <div>
       <a href="#/" className="neu-btn mb-6 inline-flex h-9 items-center gap-2 rounded-xl px-3.5 text-[13px] font-medium">
-        <ArrowLeft className="h-4 w-4" aria-hidden /> Back to Asset IQ
+        <ArrowLeft className="h-4 w-4" aria-hidden /> Back to home
       </a>
       <PageHeader
         eyebrow="Legal"

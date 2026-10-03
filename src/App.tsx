@@ -10,6 +10,7 @@ import { opportunityLabel, signals } from './engine/explanations'
 import { optimize, recommendedPath } from './engine/optimizer'
 import { DiagnosisPage } from './pages/DiagnosisPage'
 import { IntakePage } from './pages/IntakePage'
+import { HomePage } from './pages/HomePage'
 import { PrivacyPage } from './pages/PrivacyPage'
 import { ReportPage } from './pages/ReportPage'
 import { StrategyPage } from './pages/StrategyPage'
@@ -42,14 +43,19 @@ export default function App() {
     window.addEventListener('hashchange', on)
     return () => window.removeEventListener('hashchange', on)
   }, [])
-  const showPrivacy = hash === '#/privacy'
+  // Routes: homepage at the root, the product at #/app, the policy at #/privacy.
+  const route: 'home' | 'app' | 'privacy' = hash === '#/privacy' ? 'privacy' : hash.startsWith('#/app') ? 'app' : 'home'
+  const showPrivacy = route === 'privacy'
+  const enterApp = () => {
+    if (window.location.hash !== '#/app') window.location.hash = '#/app'
+  }
 
   useEffect(() => {
     window.scrollTo({ top: 0 })
-  }, [step, showPrivacy])
+  }, [step, route])
 
   const go = (s: StepId) => {
-    if (showPrivacy) window.location.hash = '#/'
+    enterApp()
     setStep(s)
     setMaxStep((m) => Math.max(m, ORDER.indexOf(s)))
   }
@@ -100,7 +106,7 @@ export default function App() {
       const ok = window.confirm('The guided tour loads a sample building and replaces the information in the form. Continue?')
       if (!ok) return
     }
-    if (showPrivacy) window.location.hash = '#/'
+    enterApp()
     setForm(DEMO_FORM)
     setBuilding(null)
     setSubs(FIRST_STAGES)
@@ -111,13 +117,13 @@ export default function App() {
 
   /** The ? button: open the tour chapter for the page you're on. */
   const startHelp = () => {
-    if (showPrivacy || step === 'intake' || !building) return startTour(0)
+    if (route !== 'app' || step === 'intake' || !building) return startTour(0)
     tourGo(CHAPTER_START[step])
   }
 
   /** Logo: back to the first section of the building assessment, keeping all data. */
   const goHome = () => {
-    if (showPrivacy) window.location.hash = '#/'
+    enterApp()
     setSubs((p) => ({ ...p, intake: 0 }))
     setStep('intake')
     window.scrollTo({ top: 0 })
@@ -137,7 +143,7 @@ export default function App() {
 
   /** Leave the sample building and start a blank assessment. */
   const startOwn = () => {
-    if (showPrivacy) window.location.hash = '#/'
+    enterApp()
     setTourIndex(null)
     setForm(EMPTY_FORM)
     setBuilding(null)
@@ -150,6 +156,10 @@ export default function App() {
   const strategy = result?.strategies.find((s) => s.id === selected) ?? null
   const demoLoaded = sameForm(form, DEMO_FORM)
 
+  if (route === 'home') {
+    return <HomePage onDemo={() => startTour(0)} onStart={startOwn} onLaunch={enterApp} />
+  }
+
   return (
     <div className="min-h-screen bg-bg print:bg-white">
       <Header
@@ -159,10 +169,10 @@ export default function App() {
         buildingName={building?.name}
         onTour={startHelp}
         onHome={goHome}
-        inApp={!showPrivacy}
+        inApp={route === 'app'}
       />
       <main className="mx-auto max-w-[1320px] px-4 py-8 sm:px-6 lg:px-8 lg:py-10 print:max-w-none print:p-0">
-        {demoLoaded && tourIndex === null && !showPrivacy && (
+        {demoLoaded && tourIndex === null && route === 'app' && (
           <div
             role="region"
             aria-label="Sample building notice"
@@ -246,7 +256,7 @@ export default function App() {
         </nav>
       </footer>
 
-      {tourIndex !== null && !showPrivacy && (
+      {tourIndex !== null && route === 'app' && (
         <Tour
           steps={TOUR_STEPS}
           index={tourIndex}
