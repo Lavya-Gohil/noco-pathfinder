@@ -1,0 +1,233 @@
+@import 'tailwindcss';
+
+/* `dark:` variant follows the resolved theme attribute set by ThemeProvider. */
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+/* Semantic tokens → Tailwind utilities (bg-surface, text-fg-2, border-line, …). */
+@theme inline {
+  --font-sans: 'Inter Variable', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-fg: var(--fg);
+  --color-fg-2: var(--fg-2);
+  --color-fg-3: var(--fg-3);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-fg: var(--brand-fg);
+  --color-brand-text: var(--brand-text);
+  --color-brand-soft: var(--brand-soft);
+  --color-pos: var(--pos);
+  --color-warn: var(--warn);
+  --color-warn-text: var(--warn-text);
+  --color-warn-soft: var(--warn-soft);
+  --color-neg: var(--neg);
+  --color-info: var(--info);
+  --color-info-text: var(--info-text);
+  --color-info-soft: var(--info-soft);
+}
+
+/* ---------- Light theme (default, also used for the report document) ---------- */
+:root,
+.theme-light {
+  color-scheme: light;
+  --bg: #f7f8fa;
+  --surface: #ffffff;
+  --surface-2: #f1f3f5;
+  --surface-3: #ffffff;
+  --fg: #111827;
+  --fg-2: #667085;
+  --fg-3: #98a2b3;
+  --line: #e4e7ec;
+  --line-strong: #d0d5dd;
+  --brand: #16794a;
+  --brand-hover: #11623c;
+  --brand-fg: #ffffff;
+  --brand-text: #16794a;
+  --brand-soft: #edf7f1;
+  --pos: #16a34a;
+  --warn: #d97706;
+  --warn-text: #b45309;
+  --warn-soft: #fff8eb;
+  --neg: #dc2626;
+  --info: #2563eb;
+  --info-text: #1d4ed8;
+  --info-soft: #eff4ff;
+  --shadow-overlay: 0 24px 48px -12px rgba(16, 24, 40, 0.18);
+}
+
+/* ---------- Dark theme ---------- */
+[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #0d1117;
+  --surface: #151a21;
+  --surface-2: #1b212a;
+  --surface-3: #202731;
+  --fg: #f3f4f6;
+  --fg-2: #aeb6c2;
+  --fg-3: #7c8593;
+  --line: #2b3440;
+  --line-strong: #3a4553;
+  --brand: #2a8a5c;
+  --brand-hover: #31a06b;
+  --brand-fg: #ffffff;
+  --brand-text: #42b883;
+  --brand-soft: #16302a;
+  --pos: #42b883;
+  --warn: #e0a030;
+  --warn-text: #f0b44c;
+  --warn-soft: #2d2414;
+  --neg: #f05252;
+  --info: #5b8def;
+  --info-text: #8fb3f7;
+  --info-soft: #18243a;
+  --shadow-overlay: 0 24px 48px -12px rgba(0, 0, 0, 0.6);
+}
+
+/* The report document is always light, even inside dark mode. */
+.theme-light {
+  color: var(--fg);
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+  font-feature-settings: 'cv11';
+}
+
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+:where(button, a, [role='button'], summary):focus-visible {
+  outline: 2px solid var(--brand-text);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* ---------- Range slider ---------- */
+input[type='range'].slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    var(--brand) 0%,
+    var(--brand) var(--fill, 50%),
+    var(--line-strong) var(--fill, 50%),
+    var(--line-strong) 100%
+  );
+  outline: none;
+  cursor: pointer;
+}
+input[type='range'].slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: var(--surface-3);
+  border: 2px solid var(--brand);
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.2);
+  transition: box-shadow 0.15s;
+}
+input[type='range'].slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: var(--surface-3);
+  border: 2px solid var(--brand);
+}
+input[type='range'].slider:hover::-webkit-slider-thumb {
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand) 18%, transparent);
+}
+input[type='range'].slider:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand) 35%, transparent);
+}
+input[type='range'].slider:focus-visible::-moz-range-thumb {
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand) 35%, transparent);
+}
+
+/* ---------- Overlay motion (subtle) ---------- */
+@keyframes drawer-in {
+  from {
+    transform: translateX(16px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+.drawer-in {
+  animation: drawer-in 0.18s ease-out both;
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.fade-in {
+  animation: fade-in 0.15s ease-out both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .drawer-in,
+  .fade-in {
+    animation: none;
+  }
+}
+
+.recharts-wrapper *:focus {
+  outline: none;
+}
+
+/* ---------- Print: always a clean light document ---------- */
+@media print {
+  @page {
+    size: letter;
+    margin: 0.55in 0.6in;
+  }
+  html,
+  html[data-theme='dark'] {
+    color-scheme: light;
+    --bg: #ffffff;
+    --surface: #ffffff;
+    --surface-2: #f1f3f5;
+    --surface-3: #ffffff;
+    --fg: #111827;
+    --fg-2: #667085;
+    --fg-3: #98a2b3;
+    --line: #e4e7ec;
+    --line-strong: #d0d5dd;
+    --brand: #16794a;
+    --brand-text: #16794a;
+    --brand-soft: #edf7f1;
+  }
+  body {
+    background: #fff !important;
+    font-size: 12px;
+  }
+  .print-avoid-break {
+    break-inside: avoid;
+  }
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
