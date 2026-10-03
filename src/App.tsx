@@ -13,7 +13,7 @@ import { IntakePage } from './pages/IntakePage'
 import { PrivacyPage } from './pages/PrivacyPage'
 import { ReportPage } from './pages/ReportPage'
 import { StrategyPage } from './pages/StrategyPage'
-import { TOUR_STEPS } from './tour/steps'
+import { CHAPTER_START, TOUR_STEPS, type TourApi, type TourState } from './tour/steps'
 import type { Building, BuildingForm, PathId, Scenario } from './types'
 import { DEMO_FORM, EMPTY_FORM, toBuilding, validate } from './utils/building'
 
@@ -95,7 +95,7 @@ export default function App() {
     setTourIndex(i)
   }
 
-  const startTour = () => {
+  const startTour = (from = 0) => {
     if (!sameForm(form, EMPTY_FORM) && !sameForm(form, DEMO_FORM)) {
       const ok = window.confirm('The guided tour loads a sample building and replaces the information in the form. Continue?')
       if (!ok) return
@@ -106,7 +106,33 @@ export default function App() {
     setSubs(FIRST_STAGES)
     setMaxStep(0)
     setStep('intake')
-    setTourIndex(0)
+    setTourIndex(from)
+  }
+
+  /** The ? button: open the tour chapter for the page you're on. */
+  const startHelp = () => {
+    if (showPrivacy || step === 'intake' || !building) return startTour(0)
+    tourGo(CHAPTER_START[step])
+  }
+
+  /** Logo: back to the first section of the building assessment, keeping all data. */
+  const goHome = () => {
+    if (showPrivacy) window.location.hash = '#/'
+    setSubs((p) => ({ ...p, intake: 0 }))
+    setStep('intake')
+    window.scrollTo({ top: 0 })
+  }
+
+  const tourState: TourState = useMemo(
+    () => ({ page: step, subs, budget: scenario.budget, selected }),
+    [step, subs, scenario.budget, selected],
+  )
+  const tourApi: TourApi = {
+    setSub: (page, i) => setSubs((p) => ({ ...p, [page]: i })),
+    go,
+    analyze,
+    setBudget: (v) => setScenario((sc) => ({ ...sc, budget: v })),
+    home: goHome,
   }
 
   /** Leave the sample building and start a blank assessment. */
@@ -131,7 +157,8 @@ export default function App() {
         maxStep={building ? maxStep : 0}
         onNavigate={go}
         buildingName={building?.name}
-        onTour={startTour}
+        onTour={startHelp}
+        onHome={goHome}
         inApp={!showPrivacy}
       />
       <main className="mx-auto max-w-[1320px] px-4 py-8 sm:px-6 lg:px-8 lg:py-10 print:max-w-none print:p-0">
@@ -163,7 +190,7 @@ export default function App() {
                 onSubmit={analyze}
                 sub={subs.intake}
                 setSub={setSub('intake')}
-                onStartTour={startTour}
+                onStartTour={() => startTour(0)}
               />
             )}
             {step === 'diagnosis' && diagBase && confidence && diagnosis && (
@@ -223,8 +250,9 @@ export default function App() {
         <Tour
           steps={TOUR_STEPS}
           index={tourIndex}
+          state={tourState}
+          api={tourApi}
           onNext={() => (tourIndex < TOUR_STEPS.length - 1 ? tourGo(tourIndex + 1) : setTourIndex(null))}
-          onBack={() => tourIndex > 0 && tourGo(tourIndex - 1)}
           onClose={() => setTourIndex(null)}
           onStartOwn={startOwn}
         />

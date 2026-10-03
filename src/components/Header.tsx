@@ -52,6 +52,7 @@ export function Header({
   onNavigate,
   buildingName,
   onTour,
+  onHome,
   inApp,
 }: {
   step: StepId
@@ -59,6 +60,7 @@ export function Header({
   onNavigate: (s: StepId) => void
   buildingName?: string
   onTour: () => void
+  onHome: () => void
   inApp: boolean
 }) {
   const current = STEPS.findIndex((s) => s.id === step)
@@ -66,7 +68,17 @@ export function Header({
     <header className="sticky top-0 z-30 bg-bg/90 backdrop-blur-md print:hidden">
       <div className="mx-auto max-w-[1320px] px-4 pt-3 sm:px-6 lg:px-8">
         <div className="neu-raised flex h-14 items-center gap-3 rounded-2xl px-3 sm:gap-4 sm:px-4">
-          <a href="#/" className="shrink-0 rounded-xl" aria-label="NOCO Asset IQ home">
+          <a
+            href="#/"
+            onClick={(e) => {
+              e.preventDefault()
+              onHome()
+            }}
+            data-tour="brand-home"
+            className="shrink-0 rounded-xl"
+            aria-label="NOCO Asset IQ: back to building assessment"
+            title="Back to building assessment"
+          >
             <Logo compact />
           </a>
           <nav aria-label="Assessment steps" className="flex min-w-0 flex-1 items-center overflow-x-auto">
@@ -109,8 +121,8 @@ export function Header({
             type="button"
             onClick={onTour}
             className="neu-btn grid h-9 w-9 shrink-0 place-items-center rounded-xl text-fg-2 hover:text-fg"
-            aria-label="Start guided tour"
-            title="Guided tour"
+            aria-label="Help: guided tour for this page"
+            title="Guided tour for this page"
           >
             <CircleHelp className="h-4 w-4" aria-hidden />
           </button>

@@ -233,6 +233,7 @@ export function IntakePage({
 
       <div className="lg:hidden">
         <StageNav
+          tour="intake-steps-mobile"
           label="Assessment sections"
           stages={INTAKE_SECTIONS}
           current={sub}

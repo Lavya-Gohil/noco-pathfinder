@@ -25,7 +25,11 @@ export function Drawer({
 
   useEffect(() => {
     if (!open) return
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onCloseRef.current()
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return
+      e.preventDefault() // claim Esc so the guided tour doesn't also close
+      onCloseRef.current()
+    }
     window.addEventListener('keydown', onKey)
     const prevOverflow = document.body.style.overflow
     const prevFocus = document.activeElement as HTMLElement | null
