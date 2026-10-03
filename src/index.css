@@ -6,6 +6,7 @@
 /* Semantic tokens → Tailwind utilities (bg-surface, text-fg-2, border-line, …). */
 @theme inline {
   --font-sans: 'Inter Variable', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-display: 'Manrope Variable', 'Inter Variable', ui-sans-serif, -apple-system, 'Segoe UI', sans-serif;
 
   --color-bg: var(--bg);
   --color-surface: var(--surface);
@@ -34,22 +35,23 @@
 /* ---------- Light theme (default) ----------
    Soft neumorphic palette: surfaces sit on a tinted ground and are shaped by a
    light source at the top-left (white highlight) and a cool shadow bottom-right. */
+/* Deep Teal (P3). Neumorphic ground with a faint teal bias. */
 :root {
   color-scheme: light;
-  --bg: #e6eaf0;
-  --surface: #eceff4;
-  --surface-2: #e1e6ed;
-  --surface-3: #f3f5f8;
-  --fg: #0f1b2d;
-  --fg-2: #536276;
-  --fg-3: #8592a5;
-  --line: #d3dae3;
-  --line-strong: #bfc8d4;
-  --brand: #16794a;
-  --brand-hover: #11623c;
+  --bg: #e3eaed;
+  --surface: #e9eff2;
+  --surface-2: #dde5e9;
+  --surface-3: #f1f5f7;
+  --fg: #10233a;
+  --fg-2: #4f6175;
+  --fg-3: #8494a5;
+  --line: #cfdae0;
+  --line-strong: #bac8d0;
+  --brand: #0e6b6b;
+  --brand-hover: #0b5858;
   --brand-fg: #ffffff;
-  --brand-text: #136b41;
-  --brand-soft: #dcefe4;
+  --brand-text: #0c6363;
+  --brand-soft: #d6ecea;
   --pos: #16a34a;
   --warn: #d97706;
   --warn-text: #a14b06;
@@ -59,34 +61,34 @@
   --info-text: #1d4ed8;
   --info-soft: #e1e9fb;
 
-  --sh-dark: rgba(152, 166, 188, 0.55);
+  --sh-dark: rgba(140, 163, 176, 0.55);
   --sh-light: rgba(255, 255, 255, 0.95);
   --edge: rgba(255, 255, 255, 0.75);
-  --raise-bg: linear-gradient(145deg, #f1f4f8 0%, #e7ebf0 100%);
-  --well-bg: #e1e6ed;
-  --shadow-overlay: 0 28px 60px -18px rgba(30, 41, 59, 0.35);
-  --brand-grad: linear-gradient(180deg, #1f9160 0%, #157346 100%);
-  --brand-grad-hover: linear-gradient(180deg, #23a06a 0%, #177d4c 100%);
-  --knob: radial-gradient(circle at 35% 30%, #ffffff 0%, #eef1f5 45%, #d9dfe7 100%);
+  --raise-bg: linear-gradient(145deg, #eef3f5 0%, #e3eaed 100%);
+  --well-bg: #dde5e9;
+  --shadow-overlay: 0 28px 60px -18px rgba(16, 35, 58, 0.35);
+  --brand-grad: linear-gradient(180deg, #148282 0%, #0c5f5f 100%);
+  --brand-grad-hover: linear-gradient(180deg, #179191 0%, #0e6b6b 100%);
+  --knob: radial-gradient(circle at 35% 30%, #ffffff 0%, #eaf0f3 45%, #d2dde2 100%);
 }
 
 /* ---------- Dark theme ---------- */
 [data-theme='dark'] {
   color-scheme: dark;
-  --bg: #1a1f27;
-  --surface: #1e242d;
-  --surface-2: #161b22;
-  --surface-3: #252c36;
-  --fg: #eef1f5;
-  --fg-2: #a7b1c0;
-  --fg-3: #7a8596;
-  --line: #2c343f;
-  --line-strong: #3a4350;
-  --brand: #2a8a5c;
-  --brand-hover: #31a06b;
+  --bg: #182026;
+  --surface: #1c252c;
+  --surface-2: #141b20;
+  --surface-3: #232d35;
+  --fg: #eef2f4;
+  --fg-2: #a6b3bd;
+  --fg-3: #788692;
+  --line: #2a353e;
+  --line-strong: #37444e;
+  --brand: #1f8f8a;
+  --brand-hover: #26a59f;
   --brand-fg: #ffffff;
-  --brand-text: #4cc08d;
-  --brand-soft: #1b3329;
+  --brand-text: #4fc1ba;
+  --brand-soft: #163231;
   --pos: #4cc08d;
   --warn: #e0a030;
   --warn-text: #f0b44c;
@@ -96,15 +98,15 @@
   --info-text: #8fb3f7;
   --info-soft: #1b2638;
 
-  --sh-dark: rgba(6, 8, 12, 0.7);
+  --sh-dark: rgba(5, 9, 12, 0.7);
   --sh-light: rgba(255, 255, 255, 0.045);
   --edge: rgba(255, 255, 255, 0.05);
-  --raise-bg: linear-gradient(145deg, #222933 0%, #1b2129 100%);
-  --well-bg: #161b22;
+  --raise-bg: linear-gradient(145deg, #212b33 0%, #1a2329 100%);
+  --well-bg: #141b20;
   --shadow-overlay: 0 28px 60px -18px rgba(0, 0, 0, 0.75);
-  --brand-grad: linear-gradient(180deg, #2f9e6b 0%, #23804f 100%);
-  --brand-grad-hover: linear-gradient(180deg, #35ad76 0%, #278c58 100%);
-  --knob: radial-gradient(circle at 35% 30%, #3a4350 0%, #2a313c 50%, #1e242d 100%);
+  --brand-grad: linear-gradient(180deg, #24a39d 0%, #1a7f7a 100%);
+  --brand-grad-hover: linear-gradient(180deg, #2ab3ac 0%, #1d8d87 100%);
+  --knob: radial-gradient(circle at 35% 30%, #384650 0%, #28333b 50%, #1c252c 100%);
 }
 
 /* The report document is always a light sheet of paper, even in dark mode. */
@@ -119,9 +121,10 @@
   --fg-3: #98a2b3;
   --line: #e4e7ec;
   --line-strong: #d0d5dd;
-  --brand: #16794a;
-  --brand-text: #16794a;
-  --brand-soft: #edf7f1;
+  --brand: #0e6b6b;
+  --brand-text: #0e6b6b;
+  --brand-soft: #e6f3f2;
+  --fg: #10233a;
   color: var(--fg);
 }
 
@@ -143,6 +146,15 @@ body {
 [data-tour] {
   scroll-margin-top: 96px;
   scroll-margin-bottom: 24px;
+}
+
+/* Manrope for headings and headline figures (T3); Inter for reading text. */
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
 }
 
 .tnum {
@@ -374,9 +386,9 @@ input[type='range'].slider:focus-visible::-moz-range-thumb {
     --fg-3: #98a2b3;
     --line: #e4e7ec;
     --line-strong: #d0d5dd;
-    --brand: #16794a;
-    --brand-text: #16794a;
-    --brand-soft: #edf7f1;
+    --brand: #0e6b6b;
+    --brand-text: #0e6b6b;
+    --brand-soft: #e6f3f2;
   }
   body {
     background: #fff !important;

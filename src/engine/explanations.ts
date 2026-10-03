@@ -125,7 +125,7 @@ export interface WhyPoint {
   impact?: string
 }
 
-/** The "Why Pathfinder chose this order" narrative. */
+/** The "Why this order" narrative. */
 export function whyThisOrder(plan: PlanResult, budget: number): WhyPoint[] {
   const has = (m: MeasureId) => plan.order.includes(m)
   const step = (m: MeasureId) => plan.steps.find((s) => s.id === m)
@@ -170,7 +170,7 @@ export function whyThisOrder(plan: PlanResult, budget: number): WhyPoint[] {
   if (plan.overlapRemoved > 1) {
     out.push({
       title: 'No double counting',
-      text: `A simple sum of these upgrades would claim ${money(plan.naiveSavings)}/yr. Because each phase saves energy from the load left by earlier phases, Pathfinder counts ${money(plan.annualSavings)}/yr.`,
+      text: `A simple sum of these upgrades would claim ${money(plan.naiveSavings)}/yr. Because each phase saves energy from the load left by earlier phases, Asset IQ counts ${money(plan.annualSavings)}/yr.`,
       impact: `${money(plan.overlapRemoved)}/yr overlap removed`,
     })
   }

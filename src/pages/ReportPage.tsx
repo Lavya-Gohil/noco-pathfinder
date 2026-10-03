@@ -7,7 +7,7 @@ import { MEASURES } from '../engine/measures'
 import type { Strategy } from '../engine/optimizer'
 import type { Scenario } from '../types'
 import { money, num, pct, signedPct, tons, years } from '../utils/format'
-import { Logo } from '../components/Header'
+import { Logo, MAKER, PRODUCT, TAGLINE } from '../components/Brand'
 import { Button } from '../components/ui'
 
 const NEXT_STEPS = [
@@ -76,7 +76,7 @@ export function ReportPage({
       <article data-tour="report-doc" className="theme-light mx-auto max-w-[816px] rounded-[4px] bg-white px-6 py-8 text-[13px] text-fg shadow-[0_1px_1px_rgba(0,0,0,0.06),0_10px_24px_-6px_rgba(15,23,42,0.22),0_40px_80px_-30px_rgba(15,23,42,0.35)] sm:px-14 sm:py-12 print:max-w-none print:rounded-none print:border-0 print:p-0 print:shadow-none">
         <header className="border-b-2 border-fg pb-5">
           <div className="flex items-center justify-between gap-4">
-            <Logo flat />
+            <Logo />
             <span className="text-[12px] text-fg-2">{today}</span>
           </div>
           <h1 className="mt-6 text-[24px] font-semibold tracking-[-0.01em] text-fg">Preliminary Energy Investment Roadmap</h1>
@@ -108,7 +108,7 @@ export function ReportPage({
             {plan ? (
               <div className="space-y-2.5 text-[13px] leading-relaxed text-fg">
                 <p>
-                  Based on the information provided, Pathfinder recommends the{' '}
+                  Based on the information provided, {PRODUCT} recommends the{' '}
                   <strong className="font-semibold">{strategy.name}</strong> path: {sequence}. The program requires an estimated{' '}
                   <span className="tnum font-medium">{money(plan.net)}</span> net investment after potential incentives and is
                   expected to save about <span className="tnum font-medium">{money(plan.annualSavings)}</span> per year — a simple
@@ -233,7 +233,10 @@ export function ReportPage({
         </div>
 
         <footer className="mt-10 border-t border-line pt-3 text-[11px] leading-relaxed text-fg-2">
-          Preliminary estimate. Final recommendations require site verification and confirmed incentive eligibility.
+          <p>Preliminary estimate. Final recommendations require site verification and confirmed incentive eligibility.</p>
+          <p className="mt-1">
+            NOCO {PRODUCT} by {MAKER} · {TAGLINE}
+          </p>
         </footer>
       </article>
     </div>

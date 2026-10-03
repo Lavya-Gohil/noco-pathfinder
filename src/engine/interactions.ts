@@ -405,7 +405,7 @@ export function unsequencedOrder(ids: MeasureId[]): MeasureId[] {
 }
 
 /**
- * Sequencing rules — the order Pathfinder recommends for a set of measures:
+ * Sequencing rules — the order Asset IQ recommends for a set of measures:
  *  1. Load reduction (envelope, LED) before systems. If HVAC is in the plan,
  *     envelope leads because it has the largest effect on HVAC sizing;
  *     otherwise the faster payback goes first.

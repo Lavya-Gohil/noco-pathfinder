@@ -1,6 +1,6 @@
-# NOCO Pathfinder
+# NOCO | Asset IQ
 
-*Don't just retrofit. Retrofit in the right order.*
+*Every upgrade, in the right order.* · By Axion Dynamics
 
 Local, offline React + TypeScript app that recommends commercial-building energy retrofits **and the order to do them in**.
 

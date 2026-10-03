@@ -1,6 +1,6 @@
-import { useId } from 'react'
 import { Building, CircleHelp, Monitor, Moon, Sun } from 'lucide-react'
 import { useTheme, type ThemePref } from '../theme'
+import { Logo } from './Brand'
 import { cx } from './ui'
 
 export type StepId = 'intake' | 'diagnosis' | 'strategy' | 'report'
@@ -11,33 +11,6 @@ const STEPS: { id: StepId; label: string }[] = [
   { id: 'strategy', label: 'Strategy' },
   { id: 'report', label: 'Report' },
 ]
-
-export function Logo({ className, flat, compact }: { className?: string; flat?: boolean; compact?: boolean }) {
-  // Unique gradient id per instance: a hidden logo (e.g. the header when printing) must not own the shared gradient.
-  const gid = useId()
-  return (
-    <div className={cx('flex items-center gap-2.5', className)}>
-      <span
-        className={cx('grid h-8 w-8 shrink-0 place-items-center rounded-[10px]', !flat && 'neu-raised-sm')}
-        aria-hidden
-      >
-        <svg viewBox="0 0 32 32" className="h-6 w-6">
-          <defs>
-            <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stopColor="#21985F" />
-              <stop offset="1" stopColor="#136B41" />
-            </linearGradient>
-          </defs>
-          <rect width="32" height="32" rx="8" fill={`url(#${gid})`} />
-          <path d="M9 22.5V9.5l14 13V9.5" stroke="#fff" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </span>
-      <span className={cx('text-[15px] tracking-[-0.01em] text-fg', compact && 'hidden sm:inline')}>
-        <span className="font-semibold">NOCO</span> <span className="text-fg-2">Pathfinder</span>
-      </span>
-    </div>
-  )
-}
 
 const THEME_OPTIONS: { id: ThemePref; label: string; Icon: typeof Sun }[] = [
   { id: 'light', label: 'Light theme', Icon: Sun },
@@ -93,7 +66,7 @@ export function Header({
     <header className="sticky top-0 z-30 bg-bg/90 backdrop-blur-md print:hidden">
       <div className="mx-auto max-w-[1320px] px-4 pt-3 sm:px-6 lg:px-8">
         <div className="neu-raised flex h-14 items-center gap-3 rounded-2xl px-3 sm:gap-4 sm:px-4">
-          <a href="#/" className="shrink-0 rounded-xl" aria-label="NOCO Pathfinder home">
+          <a href="#/" className="shrink-0 rounded-xl" aria-label="NOCO Asset IQ home">
             <Logo compact />
           </a>
           <nav aria-label="Assessment steps" className="flex min-w-0 flex-1 items-center overflow-x-auto">

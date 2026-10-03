@@ -17,7 +17,7 @@ export const TOUR_STEPS: TourStep[] = [
     page: 'intake',
     sub: 0,
     target: 'intake-section',
-    title: 'Welcome to Pathfinder',
+    title: 'Welcome to Asset IQ',
     body: "We've loaded a sample property: Riverside Commerce Center, an 85,000 sq ft office in Buffalo, NY. The assessment is split into four short sections. This one covers the property basics.",
   },
   {
@@ -33,14 +33,14 @@ export const TOUR_STEPS: TourStep[] = [
     sub: 1,
     target: 'intake-section',
     title: 'Building systems',
-    body: "Heating and cooling types determine how much an HVAC upgrade can save. If you're not sure, say so. Pathfinder lowers its confidence instead of guessing.",
+    body: "Heating and cooling types determine how much an HVAC upgrade can save. If you're not sure, say so. Asset IQ lowers its confidence instead of guessing.",
   },
   {
     page: 'intake',
     sub: 2,
     target: 'intake-section',
     title: 'Energy',
-    body: 'Annual bills set the baseline. Adding annual kWh lets Pathfinder use your actual electricity rate instead of a default one.',
+    body: 'Annual bills set the baseline. Adding annual kWh lets Asset IQ use your actual electricity rate instead of a default one.',
   },
   {
     page: 'intake',
@@ -75,7 +75,7 @@ export const TOUR_STEPS: TourStep[] = [
     sub: 1,
     target: 'diag-confidence',
     title: 'Data confidence',
-    body: 'Pathfinder scores how much it knows about the building and names the single most valuable piece of data to collect next, with the confidence it would add.',
+    body: 'Asset IQ scores how much it knows about the building and names the single most valuable piece of data to collect next, with the confidence it would add.',
   },
   {
     page: 'diagnosis',
@@ -89,7 +89,7 @@ export const TOUR_STEPS: TourStep[] = [
     sub: 0,
     target: 'strategy-paths',
     title: 'Three investment paths',
-    body: 'Pathfinder tested all 31 combinations of five upgrades. Quick Wins favors payback, Balanced weighs savings against payback and sequencing, and Deep Retrofit maximizes energy reduction.',
+    body: 'Asset IQ tested all 31 combinations of five upgrades. Quick Wins favors payback, Balanced weighs savings against payback and sequencing, and Deep Retrofit maximizes energy reduction.',
   },
   {
     page: 'strategy',

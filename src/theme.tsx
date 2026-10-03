@@ -69,21 +69,21 @@ export interface ChartPalette {
 
 const LIGHT: ChartPalette = {
   quick: '#2563eb',
-  balanced: '#16794a',
+  balanced: '#009488',
   deep: '#c26a06',
-  bar: '#16794a',
-  grid: '#eef0f3',
-  axis: '#667085',
-  label: '#344054',
+  bar: '#009488',
+  grid: '#dbe4e9',
+  axis: '#4f6175',
+  label: '#334a5e',
   reference: '#98a2b3',
 }
 
 const DARK: ChartPalette = {
   quick: '#5b8def',
-  balanced: '#36a473',
+  balanced: '#14a69c',
   deep: '#c07812',
-  bar: '#36a473',
-  grid: '#232b36',
+  bar: '#14a69c',
+  grid: '#25303a',
   axis: '#7c8593',
   label: '#aeb6c2',
   reference: '#56606e',

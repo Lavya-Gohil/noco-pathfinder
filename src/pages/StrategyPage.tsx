@@ -372,7 +372,7 @@ export function StrategyPage({
                 <Panel
                   tour="strategy-roadmap"
                   title="Upgrade roadmap"
-                  description="Phases in the order Pathfinder recommends"
+                  description="Phases in the order Asset IQ recommends"
                   actions={<EstimateNote className="hidden sm:inline-flex">Pre-audit estimate</EstimateNote>}
                 >
                   <Roadmap plan={plan} base={base} future={future.slice(0, 2)} />

@@ -13,7 +13,7 @@ const SECTIONS: { id: string; title: string; body: ReactNode }[] = [
     body: (
       <>
         <p>
-          NOCO Pathfinder runs entirely in your web browser. The building details and utility costs you enter are used
+          NOCO Asset IQ runs entirely in your web browser. The building details and utility costs you enter are used
           only to calculate estimates on your device. They are not sent to us or to any server, and we do not keep a
           copy.
         </p>
@@ -79,14 +79,14 @@ const SECTIONS: { id: string; title: string; body: ReactNode }[] = [
   {
     id: 'children',
     title: "Children's privacy",
-    body: <p>Pathfinder is a business tool and is not directed at children.</p>,
+    body: <p>Asset IQ is a business tool and is not directed at children.</p>,
   },
   {
     id: 'changes',
     title: 'Changes to this policy',
     body: (
       <p>
-        If the way Pathfinder handles information changes, this page will be updated and the date at the top will
+        If the way Asset IQ handles information changes, this page will be updated and the date at the top will
         change. Material changes, such as any server-side storage, would be described here before taking effect.
       </p>
     ),
@@ -110,12 +110,12 @@ export function PrivacyPage() {
   return (
     <div>
       <a href="#/" className="neu-btn mb-6 inline-flex h-9 items-center gap-2 rounded-xl px-3.5 text-[13px] font-medium">
-        <ArrowLeft className="h-4 w-4" aria-hidden /> Back to Pathfinder
+        <ArrowLeft className="h-4 w-4" aria-hidden /> Back to Asset IQ
       </a>
       <PageHeader
         eyebrow="Legal"
         title="Privacy policy"
-        description={`Last updated ${UPDATED}. How NOCO Pathfinder handles the information you provide.`}
+        description={`Last updated ${UPDATED}. How NOCO Asset IQ handles the information you provide.`}
       />
 
       <div className="grid gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
@@ -140,7 +140,7 @@ export function PrivacyPage() {
           <div className="neu-inset mb-8 flex items-start gap-3 rounded-2xl px-5 py-4">
             <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-brand-text" aria-hidden />
             <p className="text-[14px] leading-relaxed text-fg">
-              <span className="font-semibold">Your building data never leaves your device.</span> Pathfinder has no
+              <span className="font-semibold">Your building data never leaves your device.</span> Asset IQ has no
               backend, database or analytics.
             </p>
           </div>
