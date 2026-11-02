@@ -9,7 +9,7 @@ import { ChartTooltip } from '../components/ChartTooltip'
 import { StageFooter, StageNav } from '../components/Stages'
 import { money, moneyCents, moneyShort, num, pct } from '../utils/format'
 
-const DIAGNOSIS_STAGES = [{ title: 'Energy profile' }, { title: 'Data confidence' }, { title: 'Signals' }]
+const DIAGNOSIS_STAGES = [{ title: 'Energy profile' }, { title: 'Data completeness' }, { title: 'Signals' }]
 
 export function DiagnosisPage({
   base,
@@ -120,12 +120,12 @@ export function DiagnosisPage({
         )}
 
         {sub === 1 && (
-          <Panel tour="diag-confidence" title="Data confidence" description="How reliable today's estimate is, and what would improve it">
+          <Panel tour="diag-confidence" title="Data completeness" description="How much useful data has been provided. This measures the inputs, not the accuracy of the estimates.">
             <div className="grid gap-8 md:grid-cols-2">
               <div>
                 <div className="flex items-end justify-between gap-3">
                   <div>
-                    <div className="text-[12px] text-fg-2">Current confidence</div>
+                    <div className="text-[12px] text-fg-2">Data provided</div>
                     <div className="tnum text-[40px] font-semibold leading-tight tracking-[-0.02em] text-fg">{confidence.score}%</div>
                   </div>
                   <span className="neu-inset-sm mb-2 rounded-full px-3 py-1 text-[12px] font-semibold uppercase tracking-[0.06em] text-info-text">
@@ -143,6 +143,9 @@ export function DiagnosisPage({
                   <span>Today {confidence.score}%</span>
                   <span>Potential {next.scoreAfter}%</span>
                 </div>
+                <p className="mt-3 text-[12px] leading-relaxed text-fg-2">
+                  Even with complete data these remain pre-audit estimates, based on typical factors. Only a site visit can confirm them.
+                </p>
 
                 <ul className="mt-6 grid grid-cols-1 gap-1.5 text-[13px] sm:grid-cols-2">
                   {confidence.factors.map((f) => (
@@ -165,7 +168,7 @@ export function DiagnosisPage({
                   <span className="text-fg-2">{confidence.score}%</span>
                   <span className="text-fg-3">→</span>
                   <span className="text-[22px] font-semibold text-brand-text">{next.scoreAfter}%</span>
-                  <span className="text-[12px] text-fg-3">estimated confidence</span>
+                  <span className="text-[12px] text-fg-3">complete</span>
                 </div>
                 {next.field && (
                   <Button size="sm" className="mt-4" onClick={() => onImprove(next.field!)} tour="diag-improve">

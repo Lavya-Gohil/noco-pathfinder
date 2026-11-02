@@ -1,9 +1,10 @@
-// Data confidence: how much the recommendation can be trusted given what the
-// owner has told us, and which missing data point would help most.
+// Data completeness: how much of the useful building data has been provided, and
+// which missing data point would help most. It measures the inputs and says nothing
+// about how accurate the model's factors are. Those are in docs/assumptions.md.
 
 import type { Building } from '../types'
 
-export type DataConfidenceLevel = 'Preliminary' | 'Medium' | 'High'
+export type DataConfidenceLevel = 'Preliminary' | 'Partial' | 'Detailed'
 
 export interface ConfidenceFactor {
   label: string
@@ -34,8 +35,8 @@ const BASE = 20
 
 export function levelFor(score: number): DataConfidenceLevel {
   if (score < 50) return 'Preliminary'
-  if (score <= 75) return 'Medium'
-  return 'High'
+  if (score <= 75) return 'Partial'
+  return 'Detailed'
 }
 
 export function dataConfidence(b: Building): DataConfidence {

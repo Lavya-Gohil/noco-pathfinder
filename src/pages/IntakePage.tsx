@@ -29,7 +29,7 @@ const INTAKE_SECTIONS: { title: string; description: string; fields: (keyof Buil
   },
   {
     title: 'Building systems',
-    description: 'Primary heating and cooling equipment. Choose “Not Sure” if unknown — it only lowers confidence.',
+    description: 'Primary heating and cooling equipment. Choose “Not Sure” if unknown — the estimate just relies more on typical values.',
     fields: ['heating', 'cooling', 'hvacYear'],
   },
   {
@@ -362,7 +362,7 @@ export function IntakePage({
                   label="HVAC equipment installed"
                   optional
                   error={errors.hvacYear}
-                  hint="Year the main heating and cooling units were installed. Adds 6 confidence points."
+                  hint="Year the main heating and cooling units were installed. Used to estimate the efficiency gain."
                   htmlFor="f-hvacYear"
                 >
                   <input
@@ -393,7 +393,7 @@ export function IntakePage({
                 >
                   {num('heatCost', '54,000', { prefix: '$', suffix: 'per year' })}
                 </Field>
-                <Field label="Electricity usage" optional error={errors.kwh} hint="Improves data confidence" htmlFor="f-kwh">
+                <Field label="Electricity usage" optional error={errors.kwh} hint="Gives a real electricity price" htmlFor="f-kwh">
                   {num('kwh', '720,000', { suffix: 'kWh / yr' })}
                 </Field>
                 <fieldset className="sm:col-span-2" aria-describedby={errors.monthly ? 'f-monthly-err' : 'f-monthly-hint'}>
@@ -434,7 +434,7 @@ export function IntakePage({
                     </p>
                   ) : (
                     <p id="f-monthly-hint" className="mt-1.5 text-[12px] text-fg-3">
-                      From your last 12 bills. Paste 12 values from a spreadsheet into any box. Adds 17 confidence points and measures your real cooling load.
+                      From your last 12 bills. Paste 12 values from a spreadsheet into any box. Measures your real cooling load.
                     </p>
                   )}
                 </fieldset>

@@ -257,20 +257,24 @@ export function controlsGross(base: Baseline): number {
 
 export const CONTROLS_FRACTIONS = { hvac: 0.12, lighting: 0.06, plug: 0.03 }
 
+/**
+ * How far to trust a measure's estimate from desk data. Never "High": without a site
+ * visit nobody has seen the fixtures, insulation or equipment these figures depend on.
+ */
 export function measureConfidence(id: MeasureId, base: Baseline): ConfidenceLevel {
   const b = base.building
   const hvacKnown = b.heating !== 'Not Sure' && b.cooling !== 'Not Sure'
   switch (id) {
     case 'led':
-      return base.kwhEstimated ? 'Medium' : 'High'
+      return base.kwhEstimated ? 'Low' : 'Medium'
     case 'envelope':
       return b.yearBuilt === null ? 'Low' : 'Medium'
     case 'hvac':
       if (!hvacKnown) return 'Low'
-      return b.hvacYear !== null && base.coolingMeasured ? 'High' : b.hvacYear !== null || b.yearBuilt !== null ? 'Medium' : 'Low'
+      return b.hvacYear !== null || b.yearBuilt !== null ? 'Medium' : 'Low'
     case 'controls':
       return 'Medium'
     case 'solar':
-      return base.kwhEstimated ? 'Low' : b.monthlyKwh ? 'High' : 'Medium'
+      return base.kwhEstimated ? 'Low' : 'Medium'
   }
 }

@@ -196,11 +196,11 @@ export function ReportPage({
             </Section>
           )}
 
-          <Section n={plan ? 5 : 3} title="Confidence and assumptions">
+          <Section n={plan ? 5 : 3} title="Data and assumptions">
             <div className="grid gap-6 sm:grid-cols-2">
               <dl className="space-y-2">
                 <div>
-                  <dt className="text-[12px] text-fg-2">Data confidence</dt>
+                  <dt className="text-[12px] text-fg-2">Data provided</dt>
                   <dd className="tnum font-medium text-fg">
                     {confidence.level} ({confidence.score}%)
                   </dd>
@@ -209,7 +209,7 @@ export function ReportPage({
                   <dt className="text-[12px] text-fg-2">Most valuable next data point</dt>
                   <dd className="font-medium text-fg">{confidence.next.label}</dd>
                   <dd className="tnum text-[12px] text-fg-2">
-                    Estimated confidence {confidence.score}% → {confidence.next.scoreAfter}%
+                    Data provided {confidence.score}% → {confidence.next.scoreAfter}%
                   </dd>
                 </div>
               </dl>
@@ -218,7 +218,7 @@ export function ReportPage({
                 <li>
                   Electricity at ${base.elecPrice.toFixed(3)}/kWh{base.heatFuel === 'gas' ? `; natural gas at $${GAS_PRICE_PER_THERM.toFixed(2)}/therm` : ''}.
                 </li>
-                <li>Costs are illustrative ratios by floor area and capacity, not contractor quotes.</li>
+                <li>Costs and savings use typical planning factors, not contractor quotes or site measurements, whatever the share of data provided.</li>
               </ul>
             </div>
           </Section>

@@ -127,16 +127,16 @@ function HeroPreview() {
 
 const STEPS: { icon: ReactNode; title: string; text: string }[] = [
   { icon: <ClipboardList className="h-5 w-5" />, title: 'Assess', text: 'Four short sections: property, systems, energy bills, budget and goal. About two minutes.' },
-  { icon: <Gauge className="h-5 w-5" />, title: 'Diagnose', text: 'See where energy likely goes, how confident the estimate is, and the one data point worth collecting next.' },
+  { icon: <Gauge className="h-5 w-5" />, title: 'Diagnose', text: 'See where energy likely goes, how complete the data is, and the one data point worth collecting next.' },
   { icon: <ListOrdered className="h-5 w-5" />, title: 'Sequence', text: 'Every combination of upgrades is tested in every order, and costed with interactions included.' },
-  { icon: <FileText className="h-5 w-5" />, title: 'Report', text: 'A printable roadmap for owners and stakeholders: sequence, financials, confidence and next steps.' },
+  { icon: <FileText className="h-5 w-5" />, title: 'Report', text: 'A printable roadmap for owners and stakeholders: sequence, financials, data completeness and next steps.' },
 ]
 
 const FEATURES: { icon: ReactNode; title: string; text: string }[] = [
   { icon: <Layers className="h-5 w-5" />, title: 'Sequencing engine', text: 'The order is calculated for each building, weighing what upgrades do to each other against savings starting sooner.' },
   { icon: <Scale className="h-5 w-5" />, title: 'No double counting', text: 'Each phase saves energy from the load left by earlier phases, so combined savings stay realistic.' },
   { icon: <SlidersHorizontal className="h-5 w-5" />, title: 'Budget-aware paths', text: 'Quick Wins, Balanced and Deep Retrofit re-optimize instantly as budget, prices or incentives change.' },
-  { icon: <BadgeCheck className="h-5 w-5" />, title: 'Honest confidence', text: 'A data confidence score and clear labels on every pre-audit estimate and potential incentive.' },
+  { icon: <BadgeCheck className="h-5 w-5" />, title: 'Clear about its limits', text: 'Shows how complete your data is, labels every pre-audit estimate and potential incentive, and publishes its assumptions.' },
   { icon: <Compass className="h-5 w-5" />, title: 'Guided by doing', text: 'An interactive tour where you click through the real product, chapter by chapter.' },
   { icon: <LockKeyhole className="h-5 w-5" />, title: 'Private by design', text: 'Runs entirely in the browser. No accounts, no database, no analytics.' },
 ]
@@ -289,7 +289,7 @@ export function HomePage({ onDemo, onStart, onLaunch }: { onDemo: () => void; on
               ['Simple payback', years(plan.payback)],
               ['Saved by sequencing', money(capital)],
               ['Energy spend cut', pct(plan.savingsShare)],
-              ['Data confidence', `${confidence.score}% · ${confidence.level}`],
+              ['Data provided', `${confidence.score}% · ${confidence.level}`],
             ].map(([k, v]) => (
               <div key={k} className="neu-raised rounded-2xl px-5 py-4">
                 <div className="text-[12px] text-fg-2">{k}</div>

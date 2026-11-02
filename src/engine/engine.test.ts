@@ -4,7 +4,7 @@ import { CURRENT_YEAR, buildBaseline, climateFor, measuredCoolingShare } from '.
 import { dataConfidence } from './confidence'
 import { nextSteps } from './explanations'
 import { bestOrder, cashPosition, permutations, simulate, type PlanResult } from './interactions'
-import { MEASURE_IDS, SOLAR_BILL_VALUE, envelopeLoadReduction } from './measures'
+import { MEASURE_IDS, SOLAR_BILL_VALUE, envelopeLoadReduction, measureConfidence } from './measures'
 import { BALANCED_MAX_STEP_PAYBACK, optimize, recommendedPath } from './optimizer'
 import type { MeasureId } from '../types'
 
@@ -292,11 +292,24 @@ describe('next steps', () => {
   })
 })
 
-describe('data confidence', () => {
+describe('data completeness', () => {
   it('scores the demo and always names a next data point', () => {
     const c = dataConfidence(demo)
     expect(c.score).toBe(90)
+    expect(c.level).toBe('Detailed')
     expect(c.next).toBeDefined()
+  })
+
+  it('never rates a measure High from desk data alone', () => {
+    for (const id of MEASURE_IDS) expect(measureConfidence(id, base)).not.toBe('High')
+  })
+
+  it('rates measures lower when the data behind them is missing', () => {
+    const sparse = buildBaseline({ ...demo, kwh: null, monthlyKwh: null, yearBuilt: null, hvacYear: null }, 0)
+    expect(measureConfidence('led', sparse)).toBe('Low')
+    expect(measureConfidence('solar', sparse)).toBe('Low')
+    expect(measureConfidence('envelope', sparse)).toBe('Low')
+    expect(measureConfidence('hvac', sparse)).toBe('Low')
   })
 
   it('names the data that is actually missing', () => {
