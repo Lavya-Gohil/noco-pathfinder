@@ -1,5 +1,6 @@
 import type { StepId } from '../components/Header'
 import type { PathId } from '../types'
+import type { ArrowSide } from './arrow'
 
 export const CHAPTERS = ['Building assessment', 'Diagnosis', 'Strategy', 'Report'] as const
 
@@ -31,6 +32,10 @@ export interface TourStep {
   fallback?: string
   title: string
   body: string
+  /** Selector, inside the target, for the control the arrow points at. Defaults to the target itself. */
+  pointAt?: string
+  /** Side of the control to draw the arrow on, when there is room. */
+  pointFrom?: ArrowSide
   /** The user's task. Steps with a task advance when it is done instead of on "Next". */
   task?: string
   /** Task is done when this returns true. */
@@ -74,6 +79,8 @@ export const TOUR_STEPS: TourStep[] = [
     title: 'Jump between sections',
     body: 'Finished sections show a short summary. You can jump to any section once the ones before it are complete.',
     task: 'Select Planning (step 4) in the section list.',
+    pointAt: 'li:nth-child(4) button > span:first-child',
+    pointFrom: 'left',
     until: (s) => s.subs.intake === 3,
     perform: (api) => api.setSub('intake', 3),
   },
@@ -106,6 +113,7 @@ export const TOUR_STEPS: TourStep[] = [
     title: 'Check the data',
     body: 'Diagnosis has three stages. You can open any of them from this bar.',
     task: 'Open the Data completeness stage.',
+    pointAt: 'li:nth-child(2) button',
     until: (s) => s.subs.diagnosis === 1,
     perform: (api) => api.setSub('diagnosis', 1),
   },
@@ -160,6 +168,8 @@ export const TOUR_STEPS: TourStep[] = [
     title: 'Budget drives everything',
     body: 'Every path is re-optimized the moment the budget changes. At higher budgets, Deep Retrofit adds controls and rooftop solar.',
     task: 'Drag the budget slider and watch the paths change.',
+    pointAt: 'input[type="range"]',
+    pointFrom: 'bottom',
     advanceOn: 'input',
     perform: (api) => api.setBudget(1_000_000),
   },
@@ -182,6 +192,7 @@ export const TOUR_STEPS: TourStep[] = [
     title: 'Why the order matters',
     body: 'Every order was tested, and this one is worth the most over 15 years. Upgrades that shrink the load usually come before equipment sized to it.',
     task: 'Open the Why this order stage.',
+    pointAt: 'li:nth-child(3) button',
     until: (s) => s.subs.strategy === 2,
     perform: (api) => api.setSub('strategy', 2),
   },
@@ -209,6 +220,7 @@ export const TOUR_STEPS: TourStep[] = [
     title: 'Compare the upgrades',
     body: 'Scenarios lets you test energy prices and incentives any time. Next, the individual upgrades.',
     task: 'Open the Compare measures stage.',
+    pointAt: 'li:nth-child(5) button',
     until: (s) => s.subs.strategy === 4,
     perform: (api) => api.setSub('strategy', 4),
   },
@@ -220,6 +232,7 @@ export const TOUR_STEPS: TourStep[] = [
     title: 'Inspect an upgrade',
     body: 'Each measure lists its assumptions, how it interacts with the others, and what needs site verification.',
     task: 'Click any measure in the table. Close the panel when you are done.',
+    pointAt: 'tbody tr:first-child button',
     advanceOn: 'click',
     perform: () => document.querySelector<HTMLElement>('[data-tour="strategy-table"] tbody button')?.click(),
   },

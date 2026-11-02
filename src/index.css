@@ -356,10 +356,24 @@ input[type='range'].slider:focus-visible::-moz-range-thumb {
 .stage-in {
   animation: stage-in 0.2s ease-out both;
 }
+/* Drawn pointing down and rotated into place, so this always moves toward the control. */
+@keyframes tour-arrow-nudge {
+  0%,
+  100% {
+    transform: translateY(-3px);
+  }
+  50% {
+    transform: translateY(2px);
+  }
+}
+.tour-arrow-nudge {
+  animation: tour-arrow-nudge 1s ease-in-out infinite;
+}
 @media (prefers-reduced-motion: reduce) {
   .drawer-in,
   .fade-in,
-  .stage-in {
+  .stage-in,
+  .tour-arrow-nudge {
     animation: none;
   }
 }

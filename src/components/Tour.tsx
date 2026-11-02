@@ -2,14 +2,10 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { ArrowRight, MousePointerClick, X } from 'lucide-react'
 import { CHAPTERS, type TourApi, type TourState, type TourStep } from '../tour/steps'
+import { ARROW_SIZE, aimBox, placeArrow, type ArrowSide, type Box } from '../tour/arrow'
 import { Button, cx } from './ui'
 
-interface Rect {
-  top: number
-  left: number
-  width: number
-  height: number
-}
+type Rect = Box
 
 const PAD = 8
 const GAP = 14
@@ -21,6 +17,21 @@ function findTarget(step: TourStep): HTMLElement | null {
     if (el && el.getClientRects().length > 0 && el.offsetWidth > 0) return el
   }
   return null
+}
+
+const ARROW_ROTATION: Record<ArrowSide, number> = { top: 0, right: 90, bottom: 180, left: 270 }
+
+/** Solid arrow pointing at the control the task asks for. Its outline keeps it visible on any background. */
+function ClickArrow({ top, left, side }: { top: number; left: number; side: ArrowSide }) {
+  return (
+    <div data-testid="tour-arrow" data-side={side} aria-hidden className="pointer-events-none fixed z-[62]" style={{ top, left, width: ARROW_SIZE, height: ARROW_SIZE }}>
+      <svg viewBox="0 0 44 44" className="h-full w-full drop-shadow-[0_2px_4px_rgba(0,0,0,0.45)]" style={{ transform: `rotate(${ARROW_ROTATION[side]}deg)` }}>
+        <g className="tour-arrow-nudge">
+          <path d="M15 4h14v18h10L22 41 5 22h10z" fill="var(--brand)" stroke="#ffffff" strokeWidth="2.5" strokeLinejoin="round" />
+        </g>
+      </svg>
+    </div>
+  )
 }
 
 /**
@@ -47,6 +58,7 @@ export function Tour({
 }) {
   const step = steps[index]
   const [rect, setRect] = useState<Rect | null>(null)
+  const [aim, setAim] = useState<Box | null>(null)
   const [pop, setPop] = useState<{ top: number; left: number; width: number } | null>(null)
   const [paused, setPaused] = useState(false)
   const [done, setDone] = useState(false)
@@ -92,6 +104,7 @@ export function Tour({
     let cleanup = () => {}
     elRef.current = null
     setRect(null)
+    setAim(null)
     const seek = () => {
       const el = findTarget(step)
       if (el) {
@@ -127,6 +140,7 @@ export function Tour({
   useEffect(() => {
     let raf = 0
     let prev = ''
+    let prevAim = ''
     let wasPaused = false
     const tick = () => {
       const isPaused = step.waitWhile ? Boolean(document.querySelector(step.waitWhile)) : false
@@ -142,6 +156,14 @@ export function Tour({
         if (key !== prev) {
           prev = key
           setRect({ top: r.top - PAD, left: r.left - PAD, width: r.width + PAD * 2, height: r.height + PAD * 2 })
+        }
+        if (step.task) {
+          const a = aimBox((step.pointAt && el.querySelector<HTMLElement>(step.pointAt)) || el)
+          const aimKey = `${a.top}|${a.left}|${a.width}|${a.height}`
+          if (aimKey !== prevAim) {
+            prevAim = aimKey
+            setAim(a)
+          }
         }
       }
       raf = requestAnimationFrame(tick)
@@ -217,6 +239,11 @@ export function Tour({
 
   if (paused) return null
 
+  const arrow =
+    isTask && !done && aim
+      ? placeArrow(aim, pop && { top: pop.top, left: pop.left, width: pop.width, height: popH }, window.innerWidth, window.innerHeight, step.pointFrom)
+      : null
+
   return createPortal(
     <div className="print:hidden">
       {/* Dim everything except the spotlight. The page stays interactive. */}
@@ -232,6 +259,8 @@ export function Tour({
       ) : (
         <div aria-hidden className="pointer-events-none fixed inset-0 z-[60] bg-[rgba(10,14,20,0.45)]" />
       )}
+
+      {arrow && <ClickArrow {...arrow} />}
 
       <div
         ref={popRef}
