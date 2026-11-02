@@ -1,7 +1,7 @@
 import { useMemo, useState, type ReactNode } from 'react'
 import { SlidersHorizontal } from 'lucide-react'
 import type { Baseline } from '../engine/baseline'
-import { hvacTradeoff, valueNote, whyThisOrder } from '../engine/explanations'
+import { hvacTradeoff, valueNote, versusHvacAlone, whyThisOrder } from '../engine/explanations'
 import { ANALYSIS_YEARS, DISCOUNT_RATE, type PlanResult, type StepResult } from '../engine/interactions'
 import { MEASURES, MEASURE_IDS } from '../engine/measures'
 import type { OptimizerResult, Strategy } from '../engine/optimizer'
@@ -267,6 +267,7 @@ export function StrategyPage({
   }, [plan, byKey, result.notAdvised])
 
   const why = plan ? whyThisOrder(plan, scenario.budget).slice(0, 4) : []
+  const comparison = plan ? versusHvacAlone(plan, base, scenario) : null
   const fitsBecauseSequenced = plan ? plan.unsequencedNet > scenario.budget && plan.net <= scenario.budget : false
   const set = (patch: Partial<Scenario>) => setScenario({ ...scenario, ...patch })
   const isDefault = scenario.elecPriceChange === 0 && scenario.incentiveRate === 0.15 && scenario.budget === base.building.budget
@@ -394,6 +395,25 @@ export function StrategyPage({
                     <SummaryRow label="Energy spend reduction" value={pct(plan.savingsShare)} />
                     <SummaryRow label="Budget used" value={`${pct(plan.net / Math.max(1, scenario.budget))} of ${money(scenario.budget)}`} />
                   </dl>
+                  {comparison && (
+                    <div data-tour="strategy-comparison" className="neu-inset mt-5 rounded-xl px-4 py-3">
+                      <div className="text-[13px] font-semibold text-fg">The HVAC is due anyway. So what does this plan add?</div>
+                      <dl className="mt-2 space-y-1 text-[12px]">
+                        <div className="flex justify-between gap-4">
+                          <dt className="text-fg-2">Replace HVAC alone</dt>
+                          <dd className="tnum text-fg">{money(comparison.aloneNet)}, {money(comparison.aloneSavings)}/yr</dd>
+                        </div>
+                        <div className="flex justify-between gap-4">
+                          <dt className="text-fg-2">This plan adds</dt>
+                          <dd className="tnum text-fg">+{money(comparison.extraNet)}, +{money(comparison.extraSavings)}/yr</dd>
+                        </div>
+                        <div className="flex items-baseline justify-between gap-4 border-t border-line pt-1.5">
+                          <dt className="font-medium text-fg">Payback on the extra spend</dt>
+                          <dd className="tnum text-[16px] font-semibold text-brand-text">{years(comparison.extraPayback)}</dd>
+                        </div>
+                      </dl>
+                    </div>
+                  )}
                   {valueNote(plan, base) && <p className="mt-5 text-[12px] leading-relaxed text-fg-2">{valueNote(plan, base)}</p>}
                   {fitsBecauseSequenced && (
                     <p className="neu-inset mt-5 rounded-xl px-4 py-3 text-[12px] leading-relaxed text-fg-2">

@@ -15,9 +15,10 @@ import {
 } from 'lucide-react'
 import { buildBaseline } from '../engine/baseline'
 import { dataConfidence } from '../engine/confidence'
+import { versusHvacAlone } from '../engine/explanations'
 import { MEASURES } from '../engine/measures'
 import { optimize } from '../engine/optimizer'
-import { BrandMark, Logo, MAKER, TAGLINE } from '../components/Brand'
+import { BrandMark, CONCEPT_NOTE, Logo, MAKER, TAGLINE } from '../components/Brand'
 import { ThemeToggle } from '../components/Header'
 import { Button, cx } from '../components/ui'
 import { DEMO_FORM, toBuilding } from '../utils/building'
@@ -30,11 +31,12 @@ function useDemoResult() {
   return useMemo(() => {
     const b = toBuilding(DEMO_FORM)
     const base = buildBaseline(b, 0)
-    const r = optimize(base, { budget: b.budget, elecPriceChange: 0, incentiveRate: 0.15 })
+    const scenario = { budget: b.budget, elecPriceChange: 0, incentiveRate: 0.15 }
+    const r = optimize(base, scenario)
     const plan = r.strategies.find((s) => s.id === 'balanced')!.plan!
     const hvac = plan.steps.find((s) => s.id === 'hvac')
     const capital = hvac ? hvac.effects.reduce((a, e) => a + Math.max(0, e.capitalImpact), 0) : 0
-    return { b, base, plan, hvac, capital, orders: r.ordersTested, confidence: dataConfidence(b) }
+    return { b, base, plan, hvac, capital, orders: r.ordersTested, confidence: dataConfidence(b), comparison: versusHvacAlone(plan, base, scenario) }
   }, [])
 }
 
@@ -53,7 +55,7 @@ function Section({ id, eyebrow, title, intro, children, className }: { id?: stri
 
 /** Product preview in the hero: the sequencing comparison and the roadmap, with real numbers. */
 function HeroPreview() {
-  const { plan, hvac, capital, b } = useDemoResult()
+  const { plan, hvac, capital, b, comparison } = useDemoResult()
   const before = hvac ? hvac.net + capital : 0
   const after = hvac ? hvac.net : 0
   return (
@@ -121,6 +123,12 @@ function HeroPreview() {
           </div>
         ))}
       </div>
+      {comparison && (
+        <p className="mt-3 text-center text-[12px] text-fg-2">
+          The HVAC is due anyway. Beyond replacing it alone, this plan adds {money(comparison.extraNet)} and pays that back in{' '}
+          <span className="tnum font-semibold text-brand-text">{years(comparison.extraPayback)}</span>.
+        </p>
+      )}
     </div>
   )
 }
@@ -142,7 +150,7 @@ const FEATURES: { icon: ReactNode; title: string; text: string }[] = [
 ]
 
 export function HomePage({ onDemo, onStart, onLaunch }: { onDemo: () => void; onStart: () => void; onLaunch: () => void }) {
-  const { plan, capital, orders, b, base, confidence } = useDemoResult()
+  const { plan, capital, orders, b, base, comparison } = useDemoResult()
 
   return (
     <div className="min-h-screen bg-bg">
@@ -289,7 +297,7 @@ export function HomePage({ onDemo, onStart, onLaunch }: { onDemo: () => void; on
               ['Simple payback', years(plan.payback)],
               ['Saved by sequencing', money(capital)],
               ['Energy spend cut', pct(plan.savingsShare)],
-              ['Data provided', `${confidence.score}% · ${confidence.level}`],
+              ['Payback beyond replacing HVAC', years(comparison?.extraPayback)],
             ].map(([k, v]) => (
               <div key={k} className="neu-raised rounded-2xl px-5 py-4">
                 <div className="text-[12px] text-fg-2">{k}</div>
@@ -338,7 +346,7 @@ export function HomePage({ onDemo, onStart, onLaunch }: { onDemo: () => void; on
 
       <footer className="mx-auto flex max-w-[1200px] flex-col gap-3 px-4 pb-10 text-[13px] text-fg-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
         <span>
-          NOCO Asset IQ by {MAKER} · {TAGLINE}
+          NOCO Asset IQ by {MAKER} · {TAGLINE} {CONCEPT_NOTE}
         </span>
         <nav aria-label="Footer" className="flex gap-5">
           <a href="#/privacy" className="hover:text-fg">

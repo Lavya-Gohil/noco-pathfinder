@@ -15,6 +15,8 @@ import type { Scenario } from '../types'
 import { money, num, pct, signedPct } from '../utils/format'
 import { Bullets, Drawer, DrawerSection } from './Overlay'
 
+const ASSUMPTIONS_DOC = 'https://github.com/Lavya-Gohil/noco-pathfinder/blob/main/docs/assumptions.md'
+
 function KV({ rows }: { rows: [string, string][] }) {
   return (
     <dl className="divide-y divide-line text-[13px]">
@@ -42,6 +44,13 @@ export function AssumptionsDrawer({
   const b = base.building
   return (
     <Drawer open={open} onClose={onClose} title="Assumptions" subtitle="Illustrative pre-audit estimates, not an energy audit.">
+      <p className="mb-5 text-[13px] leading-relaxed text-fg-2">
+        Every assumption has its source and quality grade in the{' '}
+        <a href={ASSUMPTIONS_DOC} target="_blank" rel="noreferrer" className="font-medium text-brand-text underline underline-offset-2">
+          model assumptions
+        </a>
+        .
+      </p>
       <DrawerSection title="Inputs used">
         <KV
           rows={[

@@ -25,7 +25,7 @@ The code is in `src/engine/measures.ts`.
 | Boiler / heat pump conversion | $2,800 / $3,000 per ton | Scaled up from the packaged figure | D |
 | Heating-only replacement | $1,500 per ton | Scaled down from the packaged figure | D |
 | Solar | $2.35 per watt | Non-residential medians of about $2.20–3.00 per watt, from 2017–2018 data [3]. Current prices may differ | B |
-| Incentives | 15% of gross by default | Adjustable. Live programs aren't checked | D |
+| Incentives | 15% of gross by default | Adjustable. Live programs aren't checked. Federal rules tightened in 2025: 179D ended for construction starting after June 30, 2026, and the solar credit (48E) now generally needs construction started by about July 2026 or service by the end of 2027 [7]. Confirm with a tax advisor | D |
 
 The Seattle figures are for one city in 2022, so they may not hold elsewhere. Costs are not adjusted by region.
 
@@ -75,6 +75,10 @@ These matter: a longer phase gap makes it more costly to delay fast-payback upgr
 | HVAC treated as due at | 20 years. It's then exempt from Balanced's payback limit | D |
 | Balanced per-phase payback limit | 10 years | D |
 
+## The comparison with replacing HVAC alone
+
+When HVAC is past its service life, the app also shows what a plan adds beyond replacing the HVAC by itself: extra net cost, extra annual savings, and the payback on that extra spend. It assumes the replacement really would happen anyway, and it ignores the timing difference between phases. Like-for-like replacement would save less than the high-efficiency unit modeled here, so the comparison is conservative on savings.
+
 ## Not modeled
 
 - Regional cost differences.
@@ -82,7 +86,7 @@ These matter: a longer phase gap makes it more costly to delay fast-payback upgr
 - Measure lifetimes beyond the analysis period, and replacement during it.
 - Fuel switching from gas to heat pumps.
 - Equipment that fails before its planned phase. Replacing failed equipment can't wait for the plan.
-- The lower true cost of efficiency when equipment is due anyway. HVAC is carried at full replacement cost, which is conservative.
+- The lower true cost of efficiency when equipment is due anyway, in plan totals. HVAC is carried at full replacement cost there, which is conservative.
 
 ## Sources
 
@@ -92,3 +96,4 @@ These matter: a longer phase gap makes it more costly to delay fast-payback upgr
 4. Berkeley Lab, [Considering Lighting System Performance and HVAC Interactions in Lighting Retrofit Analysis](https://eta-publications.lbl.gov/bibcite/reference/23553).
 5. NREL, [Identifying Potential Markets for Behind-the-Meter Battery Energy Storage](https://www.nrel.gov/docs/fy17osti/68963.pdf), 2017.
 6. Berkeley Lab and NREL, [Exploring Demand Charge Savings from Commercial Solar](https://eta-publications.lbl.gov/sites/default/files/comdemandcharge-execsummary.pdf), 2017.
+7. [IRS FAQs on the changes to section 179D and related credits](https://www.irs.gov/newsroom/faqs-for-modification-of-sections-25c-25d-25e-30c-30d-45l-45w-and-179d-under-public-law-119-21-139-stat-72-july-4-2025-commonly-known-as-the-one-big-beautiful-bill-act-obbb) and [ASHRAE Journal on the 2025 tax law](https://www.ashrae.org//File%20Library/Technical%20Resources/ASHRAE%20Journal/What-the-One-Big-Beautiful-Bill-Act-Means-for-HVAC-R-Professionals.pdf). Dates come mostly from secondary summaries.

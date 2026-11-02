@@ -2,10 +2,10 @@
 // derived from the plan actually selected, so the narrative changes when the
 // budget, prices or incentives change.
 
-import type { Building, BuildingType, MeasureId } from '../types'
+import type { Building, BuildingType, MeasureId, Scenario } from '../types'
 import { money, num, pct } from '../utils/format'
 import type { Baseline } from './baseline'
-import { ANALYSIS_YEARS, discount, type PlanResult, type StepResult } from './interactions'
+import { ANALYSIS_YEARS, discount, simulate, type PlanResult, type StepResult } from './interactions'
 import { HVAC_SERVICE_LIFE, MEASURES, hvacAge, hvacIsDue } from './measures'
 
 export type SignalKind = 'hvac' | 'envelope' | 'lighting' | 'solar' | 'cost'
@@ -141,6 +141,28 @@ export function hvacTradeoff(plan: PlanResult, base: Baseline): string | null {
   return plan.order.includes('hvac')
     ? `Replaces the HVAC, which is ${age} and past its service life.`
     : `Leaves the HVAC, ${age}, in place. Replacing it will be a separate cost.`
+}
+
+export interface HvacComparison {
+  aloneNet: number
+  aloneSavings: number
+  extraNet: number
+  extraSavings: number
+  /** Years for the extra savings to repay the extra spend. */
+  extraPayback: number
+}
+
+/**
+ * When HVAC is due anyway, the real decision isn't whether to spend the whole budget but
+ * what this plan adds beyond replacing the HVAC by itself. Null if that comparison doesn't apply.
+ */
+export function versusHvacAlone(plan: PlanResult, base: Baseline, scenario: Scenario): HvacComparison | null {
+  if (!plan.order.includes('hvac') || plan.order.length < 2 || !hvacIsDue(base)) return null
+  const alone = simulate(['hvac'], base, scenario, false)
+  const extraNet = plan.net - alone.net
+  const extraSavings = plan.annualSavings - alone.annualSavings
+  if (extraNet <= 0 || extraSavings <= 0) return null
+  return { aloneNet: alone.net, aloneSavings: alone.annualSavings, extraNet, extraSavings, extraPayback: extraNet / extraSavings }
 }
 
 /** Next steps for the report, leaving out data the owner has already provided. */

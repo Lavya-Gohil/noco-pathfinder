@@ -140,6 +140,7 @@ export const MEASURES: Record<MeasureId, MeasureMeta> = {
       'Structural roof capacity and remaining roof life.',
       'Shading analysis and roof orientation.',
       'Utility interconnection and net-metering rules.',
+      'Federal tax credit eligibility, as the rules for solar tightened from 2025. The incentive slider is a general assumption, not a program check.',
     ],
     interactions: [
       'Sized to the demand left after the other upgrades in the plan. A smaller array costs less and also generates less, so this is not a saving in itself.',

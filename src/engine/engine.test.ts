@@ -3,7 +3,7 @@ import { DEMO_FORM, toBuilding } from '../utils/building'
 import { CURRENT_YEAR, buildBaseline, climateFor, measuredCoolingShare } from './baseline'
 import { dataConfidence } from './confidence'
 import { money } from '../utils/format'
-import { hvacTradeoff, nextSteps, valueNote } from './explanations'
+import { hvacTradeoff, nextSteps, valueNote, versusHvacAlone } from './explanations'
 import { bestOrder, cashPosition, discount, permutations, simulate, type PlanResult } from './interactions'
 import { MEASURE_IDS, SOLAR_BILL_VALUE, envelopeLoadReduction, measureConfidence } from './measures'
 import { BALANCED_MAX_STEP_PAYBACK, optimize, recommendedPath } from './optimizer'
@@ -355,6 +355,30 @@ describe('HVAC trade-off', () => {
     const line = (id: string) => hvacTradeoff(r.find((s) => s.id === id)!.plan!, base)
     expect(line('balanced')).toContain('Replaces')
     expect(line('savings')).toContain('Leaves')
+  })
+})
+
+describe('comparison with replacing HVAC alone', () => {
+  const balanced = optimize(base, scenario).strategies.find((s) => s.id === 'balanced')!.plan!
+
+  it('shows what the plan adds beyond the replacement', () => {
+    const alone = simulate(['hvac'], base, scenario, false)
+    const c = versusHvacAlone(balanced, base, scenario)!
+    expect(c.aloneNet).toBeCloseTo(alone.net, 6)
+    expect(c.extraNet).toBeCloseTo(balanced.net - alone.net, 6)
+    expect(c.extraSavings).toBeCloseTo(balanced.annualSavings - alone.annualSavings, 6)
+    expect(c.extraPayback).toBeCloseTo(c.extraNet / c.extraSavings, 6)
+  })
+
+  it('makes the demo case far better than the plain payback suggests', () => {
+    expect(versusHvacAlone(balanced, base, scenario)!.extraPayback).toBeLessThan(balanced.payback! / 2)
+  })
+
+  it('does not apply when the HVAC is not due, not in the plan, or the whole plan', () => {
+    const midLife = buildBaseline({ ...demo, hvacYear: CURRENT_YEAR - 14 }, 0)
+    expect(versusHvacAlone(simulate(['led', 'hvac'], midLife, scenario), midLife, scenario)).toBeNull()
+    expect(versusHvacAlone(simulate(['led', 'envelope'], base, scenario), base, scenario)).toBeNull()
+    expect(versusHvacAlone(simulate(['hvac'], base, scenario), base, scenario)).toBeNull()
   })
 })
 

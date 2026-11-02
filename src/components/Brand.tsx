@@ -4,6 +4,7 @@ export const PRODUCT = 'Asset IQ'
 export const COMPANY = 'NOCO'
 export const MAKER = 'Axion Dynamics'
 export const TAGLINE = 'Every upgrade, in the right order.'
+export const CONCEPT_NOTE = 'A concept by Axion Dynamics, prepared for NOCO.'
 
 /** Stepped-building mark: a building whose roofline climbs in phases. Colored by the brand token. */
 export function BrandMark({ className }: { className?: string }) {

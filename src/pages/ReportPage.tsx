@@ -2,13 +2,13 @@ import { useState, type ReactNode } from 'react'
 import { ArrowLeft, Printer } from 'lucide-react'
 import { GAS_PRICE_PER_THERM, type Baseline } from '../engine/baseline'
 import type { DataConfidence } from '../engine/confidence'
-import { hvacTradeoff, nextSteps, phaseReason, valueNote, whyThisOrder } from '../engine/explanations'
+import { hvacTradeoff, nextSteps, phaseReason, valueNote, versusHvacAlone, whyThisOrder } from '../engine/explanations'
 import { ANALYSIS_YEARS, DISCOUNT_RATE } from '../engine/interactions'
 import { MEASURES } from '../engine/measures'
 import type { Strategy } from '../engine/optimizer'
 import type { Scenario } from '../types'
 import { money, num, pct, signedPct, tons, years } from '../utils/format'
-import { Logo, MAKER, PRODUCT, TAGLINE } from '../components/Brand'
+import { CONCEPT_NOTE, Logo, MAKER, PRODUCT, TAGLINE } from '../components/Brand'
 import { Button } from '../components/ui'
 
 function Section({ n, title, children }: { n: number; title: string; children: ReactNode }) {
@@ -49,6 +49,8 @@ export function ReportPage({
   const plan = strategy.plan
   const [today] = useState(() => new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date()))
   const why = plan ? whyThisOrder(plan, scenario.budget) : []
+  const comparison = plan ? versusHvacAlone(plan, base, scenario) : null
+  const tradeoff = plan ? hvacTradeoff(plan, base) : null
   const sequence = plan ? plan.order.map((m) => MEASURES[m].name).join(' → ') : ''
   const sequencingEffect = plan ? plan.steps.flatMap((s) => s.effects).reduce((a, e) => a + Math.max(0, e.capitalImpact), 0) : 0
 
@@ -117,7 +119,17 @@ export function ReportPage({
                   payback of <span className="tnum">{years(plan.payback)}</span> and a {pct(plan.savingsShare)} reduction in annual
                   energy spend.
                 </p>
-                {hvacTradeoff(plan, base) && <p>{hvacTradeoff(plan, base)}</p>}
+                {tradeoff && <p>This plan {tradeoff[0].toLowerCase()}{tradeoff.slice(1)}</p>}
+                {comparison && (
+                  <p>
+                    Because the HVAC needs replacing regardless, the fair comparison is replacing it alone, at about{' '}
+                    <span className="tnum font-medium">{money(comparison.aloneNet)}</span> net for{' '}
+                    <span className="tnum font-medium">{money(comparison.aloneSavings)}</span> per year. This plan adds{' '}
+                    <span className="tnum font-medium">{money(comparison.extraNet)}</span> for a further{' '}
+                    <span className="tnum font-medium">{money(comparison.extraSavings)}</span> per year, a{' '}
+                    <span className="tnum font-medium">{years(comparison.extraPayback)}</span> payback on the extra spend.
+                  </p>
+                )}
                 {sequencingEffect > 1 && (
                   <p>
                     Sequencing load reductions ahead of equipment decisions lowers the estimated net project cost by about{' '}
@@ -240,7 +252,7 @@ export function ReportPage({
         <footer className="mt-10 border-t border-line pt-3 text-[11px] leading-relaxed text-fg-2">
           <p>Preliminary estimate. Final recommendations require site verification and confirmed incentive eligibility.</p>
           <p className="mt-1">
-            NOCO {PRODUCT} by {MAKER} · {TAGLINE}
+            NOCO {PRODUCT} by {MAKER} · {TAGLINE} {CONCEPT_NOTE}
           </p>
         </footer>
       </article>

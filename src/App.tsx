@@ -2,7 +2,7 @@ import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
 import { ArrowRight, Compass } from 'lucide-react'
 import { Header, type StepId } from './components/Header'
 import { Tour } from './components/Tour'
-import { MAKER, PRODUCT, TAGLINE } from './components/Brand'
+import { CONCEPT_NOTE, MAKER, PRODUCT, TAGLINE } from './components/Brand'
 import { Button } from './components/ui'
 import { buildBaseline } from './engine/baseline'
 import { dataConfidence } from './engine/confidence'
@@ -264,7 +264,7 @@ export default function App() {
       <footer className="mx-auto flex max-w-[1320px] flex-col gap-2 px-4 pb-8 text-[12px] text-fg-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8 print:hidden">
         <span>
           NOCO {PRODUCT} by {MAKER} · {TAGLINE}
-          <span className="hidden md:inline"> Illustrative pre-audit estimates; site verification required.</span>
+          <span className="hidden md:inline"> Illustrative pre-audit estimates; site verification required. {CONCEPT_NOTE}</span>
         </span>
         <nav aria-label="Footer" className="flex gap-4">
           <a href="#/privacy" className="hover:text-fg">
