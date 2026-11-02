@@ -59,6 +59,7 @@ export const useTheme = () => useContext(Ctx)
 export interface ChartPalette {
   quick: string
   balanced: string
+  savings: string
   deep: string
   bar: string
   grid: string
@@ -70,6 +71,7 @@ export interface ChartPalette {
 const LIGHT: ChartPalette = {
   quick: '#2563eb',
   balanced: '#009488',
+  savings: '#7c3aed',
   deep: '#c26a06',
   bar: '#009488',
   grid: '#dbe4e9',
@@ -81,6 +83,7 @@ const LIGHT: ChartPalette = {
 const DARK: ChartPalette = {
   quick: '#5b8def',
   balanced: '#14a69c',
+  savings: '#a78bfa',
   deep: '#c07812',
   bar: '#14a69c',
   grid: '#25303a',
@@ -94,8 +97,9 @@ export function useChartPalette(): ChartPalette {
 }
 
 /** Line dash per path — secondary encoding so paths stay distinguishable without color. */
-export const PATH_DASH: Record<'quick' | 'balanced' | 'deep', string | undefined> = {
+export const PATH_DASH: Record<'quick' | 'balanced' | 'savings' | 'deep', string | undefined> = {
   quick: '5 4',
   balanced: undefined,
+  savings: '9 3 2 3',
   deep: '2 3',
 }

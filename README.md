@@ -23,7 +23,7 @@ Merging to `main` does not update the live site. Publish with `npm run deploy`, 
 | `baseline.ts` | Intake → end-use breakdown, prices, design tons, roof kW, emissions |
 | `measures.ts` | The 5 measures: metadata + stand-alone cost/savings coefficients |
 | `interactions.ts` | Sequential simulation + interaction rules A–D, order search by 15-year value, sanity caps |
-| `optimizer.ts` | Enumerates all 31 combinations and 325 orders → Quick Wins / Balanced / Deep Retrofit |
+| `optimizer.ts` | Enumerates all 31 combinations and 325 orders → Quick Wins / Balanced / Maximum Savings / Deep Retrofit |
 | `explanations.ts` | Diagnosis signals, phase reasons, "Why this order" narrative |
 | `confidence.ts` | Data-confidence score and most valuable next data point |
 

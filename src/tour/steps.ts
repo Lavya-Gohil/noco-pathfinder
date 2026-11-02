@@ -149,8 +149,8 @@ export const TOUR_STEPS: TourStep[] = [
     page: 'strategy',
     sub: 0,
     target: 'strategy-paths',
-    title: 'Three investment paths',
-    body: 'Asset IQ tested all 31 combinations of five upgrades, in every order, and picked the best plan for each goal: fastest payback, balanced, and deepest reduction.',
+    title: 'Four investment paths',
+    body: 'Asset IQ tested all 31 combinations of five upgrades, in every order, and picked the best plan for each goal: fastest payback, balanced, most dollars saved, and deepest energy reduction.',
   },
   {
     chapter: 2,

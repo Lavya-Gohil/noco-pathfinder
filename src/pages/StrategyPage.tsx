@@ -350,7 +350,7 @@ export function StrategyPage({
                 {result.candidates.length} combinations and {result.ordersTested} orders tested · {result.affordable.length} within budget
               </span>
             </div>
-            <div data-tour="strategy-paths" className="grid gap-5 lg:grid-cols-3">
+            <div data-tour="strategy-paths" className="grid gap-5 lg:grid-cols-2">
               {result.strategies.map((s) => (
                 <StrategyCard
                   key={s.id}

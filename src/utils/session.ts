@@ -6,7 +6,7 @@ import { EMPTY_FORM, validate } from './building'
 
 const KEY = 'noco-session'
 const STEPS = ['intake', 'diagnosis', 'strategy', 'report'] as const
-const PATHS: readonly string[] = ['quick', 'balanced', 'deep']
+const PATHS: readonly string[] = ['quick', 'balanced', 'savings', 'deep']
 
 export interface SavedSession {
   form: BuildingForm

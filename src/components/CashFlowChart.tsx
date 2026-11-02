@@ -7,8 +7,8 @@ import { labelOffsets } from '../utils/chart'
 import { money, moneyShort } from '../utils/format'
 import { ChartTooltip } from './ChartTooltip'
 
-/** Approximate height of the plotted area, used to keep line labels apart. */
-const PLOT_HEIGHT = 200
+/** Low estimate of the pixels the data spans (the axis rounds beyond it), so labels err toward more space. */
+const PLOT_HEIGHT = 110
 
 /** Cumulative net cash position, with each phase paid for and saving from its own year (no escalation). */
 export function CashFlowChart({ strategies, selected }: { strategies: Strategy[]; selected: PathId }) {
@@ -35,7 +35,7 @@ export function CashFlowChart({ strategies, selected }: { strategies: Strategy[]
         aria-label={`Line chart of cumulative net cash position over ${YEARS} years for ${shown.map((s) => s.name).join(', ')}`}
       >
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data} margin={{ top: 8, right: 84, left: 0, bottom: 0 }}>
+          <LineChart data={data} margin={{ top: 8, right: 120, left: 0, bottom: 0 }}>
             <CartesianGrid stroke={c.grid} vertical={false} />
             <XAxis
               dataKey="year"

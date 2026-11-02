@@ -42,12 +42,14 @@ export interface OptimizerResult {
 export const PATH_META: Record<PathId, { name: string; goal: string }> = {
   quick: { name: 'Quick Wins', goal: 'Fastest practical payback within budget.' },
   balanced: { name: 'Balanced', goal: 'Strong savings, reasonable payback and smart sequencing.' },
+  savings: { name: 'Maximum Savings', goal: 'Highest annual dollar savings within budget.' },
   deep: { name: 'Deep Retrofit', goal: 'Maximum long-term energy and emissions reduction within budget.' },
 }
 
 export function recommendedPath(objective: Objective): PathId {
   if (objective === 'Fastest Payback') return 'quick'
   if (objective === 'Balanced') return 'balanced'
+  if (objective === 'Maximum Savings') return 'savings'
   return 'deep'
 }
 
@@ -129,6 +131,9 @@ export function optimize(base: Baseline, scenario: Scenario): OptimizerResult {
     }
   }
 
+  // MAXIMUM SAVINGS — most dollars saved per year; the cheaper plan on a tie.
+  const savings = [...affordable].sort((a, b) => b.annualSavings - a.annualSavings || a.net - b.net)[0] ?? null
+
   // DEEP RETROFIT — maximum energy reduction, then emissions, then savings
   const deep =
     [...affordable].sort(
@@ -147,6 +152,7 @@ export function optimize(base: Baseline, scenario: Scenario): OptimizerResult {
   const entries: [PathId, PlanResult | null, number][] = [
     ['quick', quick, 0],
     ['balanced', balanced, balancedBest],
+    ['savings', savings, 0],
     ['deep', deep, 0],
   ]
   const strategies: Strategy[] = entries.map(([id, plan, score], i) => {

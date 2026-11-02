@@ -100,7 +100,41 @@ describe('optimize', () => {
   it('maps objectives to paths', () => {
     expect(recommendedPath('Fastest Payback')).toBe('quick')
     expect(recommendedPath('Balanced')).toBe('balanced')
+    expect(recommendedPath('Maximum Savings')).toBe('savings')
     expect(recommendedPath('Deep Retrofit')).toBe('deep')
+  })
+})
+
+describe('Maximum Savings path', () => {
+  const path = (r: ReturnType<typeof optimize>, id: string) => r.strategies.find((s) => s.id === id)!
+
+  it('always offers the affordable plan that saves the most dollars', () => {
+    for (const budget of [100_000, 200_000, 400_000, 500_000, 600_000, 800_000, 1_000_000]) {
+      const r = optimize(base, { ...scenario, budget })
+      const most = Math.max(...r.affordable.map((p) => p.annualSavings))
+      expect(path(r, 'savings').plan!.annualSavings).toBe(most)
+      expect(path(r, 'savings').plan!.net).toBeLessThanOrEqual(budget + 0.5)
+    }
+  })
+
+  it('finds savings the other paths miss', () => {
+    const r = optimize(base, { ...scenario, budget: 600_000 })
+    const others = ['quick', 'balanced', 'deep'].map((id) => path(r, id).plan!.annualSavings)
+    expect(path(r, 'savings').plan!.annualSavings).toBeGreaterThan(Math.max(...others))
+  })
+
+  it('is marked as the same plan when another path already gets there', () => {
+    const r = optimize(base, { ...scenario, budget: 800_000 })
+    expect(path(r, 'deep').sameAs).toBe('savings')
+  })
+
+  it('is recommended for that objective', () => {
+    const r = optimize(buildBaseline({ ...demo, objective: 'Maximum Savings' }, 0), scenario)
+    expect(r.strategies.filter((s) => s.recommended).map((s) => s.id)).toEqual(['savings'])
+  })
+
+  it('is absent when nothing fits the budget', () => {
+    expect(path(optimize(base, { ...scenario, budget: 1000 }), 'savings').plan).toBeNull()
   })
 })
 

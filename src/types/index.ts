@@ -6,7 +6,7 @@ export type HeatingSystem =
   | 'Electric Resistance'
   | 'Not Sure'
 export type CoolingSystem = 'Central AC' | 'Rooftop Units' | 'Heat Pump' | 'None' | 'Not Sure'
-export type Objective = 'Fastest Payback' | 'Balanced' | 'Deep Retrofit'
+export type Objective = 'Fastest Payback' | 'Balanced' | 'Maximum Savings' | 'Deep Retrofit'
 export type ClimateZone = 'cold' | 'mixed' | 'hot'
 export type ConfidenceLevel = 'Low' | 'Medium' | 'High'
 
@@ -19,7 +19,7 @@ export const HEATING_SYSTEMS: HeatingSystem[] = [
   'Not Sure',
 ]
 export const COOLING_SYSTEMS: CoolingSystem[] = ['Central AC', 'Rooftop Units', 'Heat Pump', 'None', 'Not Sure']
-export const OBJECTIVES: Objective[] = ['Fastest Payback', 'Balanced', 'Deep Retrofit']
+export const OBJECTIVES: Objective[] = ['Fastest Payback', 'Balanced', 'Maximum Savings', 'Deep Retrofit']
 
 /** Raw values as typed into the intake form (strings so inputs can be empty). */
 export interface BuildingForm {
@@ -72,4 +72,4 @@ export interface Scenario {
 }
 
 export type MeasureId = 'envelope' | 'led' | 'hvac' | 'controls' | 'solar'
-export type PathId = 'quick' | 'balanced' | 'deep'
+export type PathId = 'quick' | 'balanced' | 'savings' | 'deep'
