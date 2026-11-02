@@ -122,6 +122,7 @@ export function IntakePage({
   sub,
   setSub,
   onStartTour,
+  stale,
 }: {
   form: BuildingForm
   setForm: (f: BuildingForm) => void
@@ -129,6 +130,8 @@ export function IntakePage({
   sub: number
   setSub: (i: number) => void
   onStartTour: () => void
+  /** The form has changed since the last analysis, so its results are out of date. */
+  stale?: boolean
 }) {
   /** Sections where the user has tried to continue — errors show live there. */
   const [attempted, setAttempted] = useState<Set<number>>(new Set())
@@ -232,6 +235,13 @@ export function IntakePage({
           </>
         }
       />
+
+      {stale && (
+        <p role="status" className="neu-inset mb-6 rounded-2xl px-5 py-3 text-[13px] text-fg-2">
+          <span className="font-medium text-fg">You've changed this building since the last analysis.</span> Finish the
+          assessment to update the diagnosis, strategy and report.
+        </p>
+      )}
 
       <div className="lg:hidden">
         <StageNav

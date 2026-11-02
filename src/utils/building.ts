@@ -44,6 +44,10 @@ export const US_STATES = [
   'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY',
 ]
 
+/** True when two forms hold the same values, ignoring display commas. */
+export const sameForm = (a: BuildingForm, b: BuildingForm) =>
+  (Object.keys(a) as (keyof BuildingForm)[]).every((k) => String(a[k]).replace(/,/g, '') === String(b[k]).replace(/,/g, ''))
+
 export const BUDGET_MIN = 25_000
 export const BUDGET_MAX = 1_000_000
 

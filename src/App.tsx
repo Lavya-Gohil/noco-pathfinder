@@ -16,7 +16,7 @@ import { ReportPage } from './pages/ReportPage'
 import { StrategyPage } from './pages/StrategyPage'
 import { CHAPTER_START, TOUR_STEPS, type TourApi, type TourState } from './tour/steps'
 import type { Building, BuildingForm, PathId, Scenario } from './types'
-import { DEMO_FORM, EMPTY_FORM, toBuilding, validate } from './utils/building'
+import { DEMO_FORM, EMPTY_FORM, sameForm, toBuilding, validate } from './utils/building'
 
 const ORDER: StepId[] = ['intake', 'diagnosis', 'strategy', 'report']
 const DEFAULT_INCENTIVE = 0.15
@@ -24,15 +24,14 @@ const REPO = 'https://github.com/Lavya-Gohil/noco-pathfinder'
 type Subs = Record<'intake' | 'diagnosis' | 'strategy', number>
 const FIRST_STAGES: Subs = { intake: 0, diagnosis: 0, strategy: 0 }
 
-const sameForm = (a: BuildingForm, b: BuildingForm) =>
-  (Object.keys(a) as (keyof BuildingForm)[]).every((k) => String(a[k]).replace(/,/g, '') === String(b[k]).replace(/,/g, ''))
-
 export default function App() {
   const [step, setStep] = useState<StepId>('intake')
   const [maxStep, setMaxStep] = useState(0)
   const [subs, setSubs] = useState<Subs>(FIRST_STAGES)
   const [form, setForm] = useState<BuildingForm>(EMPTY_FORM)
   const [building, setBuilding] = useState<Building | null>(null)
+  /** The form values behind `building`, to tell when the results no longer match the form. */
+  const [analyzedForm, setAnalyzedForm] = useState<BuildingForm | null>(null)
   const [scenario, setScenario] = useState<Scenario>({ budget: 250_000, elecPriceChange: 0, incentiveRate: DEFAULT_INCENTIVE })
   const [selected, setSelected] = useState<PathId>('balanced')
   const [tourIndex, setTourIndex] = useState<number | null>(null)
@@ -53,6 +52,10 @@ export default function App() {
   useEffect(() => {
     window.scrollTo({ top: 0 })
   }, [step, route])
+
+  // Results describe the form as it was analyzed. Once it's edited they're out of date, so
+  // the later steps stay locked until the user re-runs the analysis.
+  const stale = building !== null && analyzedForm !== null && !sameForm(form, analyzedForm)
 
   const go = (s: StepId) => {
     enterApp()
@@ -81,6 +84,7 @@ export default function App() {
     if (source !== f) setForm(DEMO_FORM)
     const b = toBuilding(source)
     setBuilding(b)
+    setAnalyzedForm(source)
     setScenario({ budget: b.budget, elecPriceChange: 0, incentiveRate: DEFAULT_INCENTIVE })
     setSelected(recommendedPath(b.objective))
     setSubs((p) => ({ ...p, diagnosis: 0, strategy: 0 }))
@@ -95,7 +99,7 @@ export default function App() {
   // ---- Guided tour ----
   const tourGo = (i: number) => {
     const st = TOUR_STEPS[i]
-    if (st.page !== 'intake' && !building) runAnalysis(form)
+    if (st.page !== 'intake' && (!building || stale)) runAnalysis(form)
     if (st.sub !== undefined && st.page !== 'report') setSubs((p) => ({ ...p, [st.page]: st.sub }))
     go(st.page)
     setTourIndex(i)
@@ -164,7 +168,7 @@ export default function App() {
     <div className="min-h-screen bg-bg print:bg-white">
       <Header
         step={step}
-        maxStep={building ? maxStep : 0}
+        maxStep={building && !stale ? maxStep : 0}
         onNavigate={go}
         buildingName={building?.name}
         onTour={startHelp}
@@ -201,6 +205,7 @@ export default function App() {
                 sub={subs.intake}
                 setSub={setSub('intake')}
                 onStartTour={() => startTour(0)}
+                stale={stale}
               />
             )}
             {step === 'diagnosis' && diagBase && confidence && diagnosis && (
