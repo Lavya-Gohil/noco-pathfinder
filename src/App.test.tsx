@@ -8,6 +8,7 @@ import { ThemeProvider } from './theme'
 
 beforeEach(() => {
   window.location.hash = '#/app'
+  sessionStorage.clear()
   vi.stubGlobal('matchMedia', () => ({ matches: false, addEventListener() {}, removeEventListener() {} }))
   vi.stubGlobal(
     'ResizeObserver',
@@ -44,6 +45,32 @@ async function analyzeDemo() {
   await screen.findByRole('heading', { name: 'Building energy profile' })
   return user
 }
+
+describe('reloading the page', () => {
+  it('keeps the assessment and its results', async () => {
+    await analyzeDemo()
+    cleanup()
+    render(
+      <ThemeProvider>
+        <App />
+      </ThemeProvider>,
+    )
+    expect(await screen.findByRole('heading', { name: 'Building energy profile' })).toBeInTheDocument()
+    expect(step(/Diagnosis/)).toBeEnabled()
+  })
+
+  it('starts empty after choosing a new assessment', async () => {
+    await analyzeDemo()
+    await userEvent.setup().click(screen.getByRole('button', { name: /Start my own assessment/ }))
+    cleanup()
+    render(
+      <ThemeProvider>
+        <App />
+      </ThemeProvider>,
+    )
+    expect(await screen.findByLabelText('Building name')).toHaveValue('')
+  })
+})
 
 describe('results stay in step with the form', () => {
   it('unlocks the diagnosis after analysis', async () => {

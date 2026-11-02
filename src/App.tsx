@@ -13,6 +13,7 @@ import { HomePage } from './pages/HomePage'
 import { CHAPTER_START, TOUR_STEPS, type TourApi, type TourState } from './tour/steps'
 import type { Building, BuildingForm, PathId, Scenario } from './types'
 import { DEMO_FORM, EMPTY_FORM, sameForm, toBuilding, validate } from './utils/building'
+import { loadSession, saveSession } from './utils/session'
 
 // Loaded on demand so the homepage and intake form don't download the chart library.
 const DiagnosisPage = lazy(() => import('./pages/DiagnosisPage').then((m) => ({ default: m.DiagnosisPage })))
@@ -27,15 +28,16 @@ type Subs = Record<'intake' | 'diagnosis' | 'strategy', number>
 const FIRST_STAGES: Subs = { intake: 0, diagnosis: 0, strategy: 0 }
 
 export default function App() {
-  const [step, setStep] = useState<StepId>('intake')
-  const [maxStep, setMaxStep] = useState(0)
-  const [subs, setSubs] = useState<Subs>(FIRST_STAGES)
-  const [form, setForm] = useState<BuildingForm>(EMPTY_FORM)
-  const [building, setBuilding] = useState<Building | null>(null)
+  const [restored] = useState(loadSession)
+  const [step, setStep] = useState<StepId>(restored?.step ?? 'intake')
+  const [maxStep, setMaxStep] = useState(restored?.maxStep ?? 0)
+  const [subs, setSubs] = useState<Subs>(restored?.subs ?? FIRST_STAGES)
+  const [form, setForm] = useState<BuildingForm>(restored?.form ?? EMPTY_FORM)
+  const [building, setBuilding] = useState<Building | null>(restored?.analyzedForm ? toBuilding(restored.analyzedForm) : null)
   /** The form values behind `building`, to tell when the results no longer match the form. */
-  const [analyzedForm, setAnalyzedForm] = useState<BuildingForm | null>(null)
-  const [scenario, setScenario] = useState<Scenario>({ budget: 250_000, elecPriceChange: 0, incentiveRate: DEFAULT_INCENTIVE })
-  const [selected, setSelected] = useState<PathId>('balanced')
+  const [analyzedForm, setAnalyzedForm] = useState<BuildingForm | null>(restored?.analyzedForm ?? null)
+  const [scenario, setScenario] = useState<Scenario>(restored?.scenario ?? { budget: 250_000, elecPriceChange: 0, incentiveRate: DEFAULT_INCENTIVE })
+  const [selected, setSelected] = useState<PathId>(restored?.selected ?? 'balanced')
   const [tourIndex, setTourIndex] = useState<number | null>(null)
   const [hash, setHash] = useState(() => window.location.hash)
 
@@ -54,6 +56,10 @@ export default function App() {
   useEffect(() => {
     window.scrollTo({ top: 0 })
   }, [step, route])
+
+  useEffect(() => {
+    saveSession({ form, analyzedForm: building ? analyzedForm : null, step, maxStep, subs, scenario, selected })
+  }, [form, analyzedForm, building, step, maxStep, subs, scenario, selected])
 
   // Results describe the form as it was analyzed. Once it's edited they're out of date, so
   // the later steps stay locked until the user re-runs the analysis.

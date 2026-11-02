@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { ArrowLeft, ShieldCheck } from 'lucide-react'
 import { PageHeader } from '../components/ui'
 
-const UPDATED = 'October 3, 2026'
+const UPDATED = 'November 2, 2026'
 const REPO = 'https://github.com/Lavya-Gohil/noco-pathfinder'
 const GITHUB_PRIVACY = 'https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement'
 
@@ -33,7 +33,7 @@ const SECTIONS: { id: string; title: string; body: ReactNode }[] = [
         <ul>
           <li>is processed in your browser's memory to produce the diagnosis, strategy and report;</li>
           <li>is not transmitted over the network;</li>
-          <li>is cleared when you reload or close the page.</li>
+          <li>is kept in this browser tab so a reload doesn't lose your work, and is deleted when you close the tab.</li>
         </ul>
         <p>Please avoid entering personal information about individuals. The tool does not need it.</p>
       </>
@@ -46,7 +46,12 @@ const SECTIONS: { id: string; title: string; body: ReactNode }[] = [
       <>
         <p>
           If you choose a light or dark theme, that preference is saved in your browser's local storage under the key{' '}
-          <code>noco-theme</code> so it persists between visits. Choosing "System" removes it. Nothing else is stored.
+          <code>noco-theme</code> so it persists between visits. Choosing "System" removes it.
+        </p>
+        <p>
+          While the tab is open, your assessment is saved in the browser's session storage under the key{' '}
+          <code>noco-session</code>, so that reloading the page doesn't lose it. It stays on this device and is deleted when
+          you close the tab. If you share this computer, close the tab when you finish. Nothing else is stored.
         </p>
         <p>You can clear this at any time through your browser's site data settings.</p>
       </>
