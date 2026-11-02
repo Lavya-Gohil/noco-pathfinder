@@ -490,14 +490,18 @@ export function permutations(ids: MeasureId[]): MeasureId[][] {
 }
 
 /**
- * The order to do a set of measures in: every order is simulated, and the one worth
- * most over the analysis period wins, among those that fit the budget if any do.
- * Starting earlier earns more, and interactions can make a later start cheaper, so
- * the result depends on the building and isn't a fixed rule.
+ * Every order of a set of measures, best first: orders that fit the budget come ahead of
+ * those that don't, then by value over the analysis period. Starting earlier earns more,
+ * and interactions can make a later start cheaper, so the result depends on the building
+ * and isn't a fixed rule.
  */
+export function rankOrders(ids: MeasureId[], base: Baseline, scenario: Scenario): PlanResult[] {
+  const fits = (p: PlanResult) => (p.net <= scenario.budget + 0.5 ? 0 : 1)
+  return permutations(ids)
+    .map((order) => simulate(order, base, scenario, false))
+    .sort((a, b) => fits(a) - fits(b) || (Math.abs(b.npv - a.npv) > 0.005 ? b.npv - a.npv : 0))
+}
+
 export function bestOrder(ids: MeasureId[], base: Baseline, scenario: Scenario): MeasureId[] {
-  const trials = permutations(ids).map((order) => simulate(order, base, scenario, false))
-  const fitting = trials.filter((p) => p.net <= scenario.budget + 0.5)
-  const pool = fitting.length ? fitting : trials
-  return pool.reduce((best, p) => (p.npv > best.npv + 0.005 ? p : best)).order
+  return rankOrders(ids, base, scenario)[0].order
 }

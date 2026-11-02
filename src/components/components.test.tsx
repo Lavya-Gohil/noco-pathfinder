@@ -1,15 +1,24 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { buildBaseline } from '../engine/baseline'
 import { dataConfidence } from '../engine/confidence'
 import { simulate } from '../engine/interactions'
 import { ReportPage } from '../pages/ReportPage'
 import { DEMO_FORM, toBuilding } from '../utils/building'
+import { OrderLab } from './OrderLab'
 import { Roadmap } from './Roadmap'
 
-afterEach(cleanup)
+beforeEach(() => {
+  vi.stubGlobal('matchMedia', () => ({ matches: true, addEventListener() {}, removeEventListener() {} }))
+})
+
+afterEach(() => {
+  cleanup()
+  vi.unstubAllGlobals()
+})
 
 const building = toBuilding(DEMO_FORM)
 const base = buildBaseline(building, 0)
@@ -26,6 +35,42 @@ describe('Roadmap', () => {
   it('marks a measure that would go over budget', () => {
     render(<Roadmap plan={plan} base={base} budget={scenario.budget} future={[{ id: 'solar', extraBudget: scenario.budget }]} />)
     expect(screen.getByText(/Outside budget/)).toBeInTheDocument()
+  })
+})
+
+describe('OrderLab', () => {
+  const big = simulate(['led', 'envelope', 'hvac'], base, { ...scenario, budget: 600_000 })
+  const lab = () => render(<OrderLab plan={big} base={base} scenario={{ ...scenario, budget: 600_000 }} />)
+
+  it('starts on the best order', () => {
+    lab()
+    expect(screen.getByText('#1')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Best order' })).toBeDisabled()
+  })
+
+  it('re-ranks when an upgrade moves', async () => {
+    const user = userEvent.setup()
+    lab()
+    await user.click(screen.getByRole('button', { name: 'Move High-Efficiency HVAC earlier' }))
+    expect(screen.queryByText('#1')).toBeNull()
+    const moved = screen.getAllByRole('listitem').map((li) => li.textContent)
+    expect(moved[1]).toContain('High-Efficiency HVAC')
+  })
+
+  it('jumps to the worst order, flags the budget, and returns to the best', async () => {
+    const user = userEvent.setup()
+    lab()
+    await user.click(screen.getByRole('button', { name: 'Worst order' }))
+    expect(screen.getByText('#6')).toBeInTheDocument()
+    expect(screen.getByText(/over the budget in this order/)).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Best order' }))
+    expect(screen.getByText('#1')).toBeInTheDocument()
+  })
+
+  it('cannot move the first upgrade earlier or the last later', () => {
+    lab()
+    expect(screen.getByRole('button', { name: 'Move LED Lighting earlier' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Move High-Efficiency HVAC later' })).toBeDisabled()
   })
 })
 

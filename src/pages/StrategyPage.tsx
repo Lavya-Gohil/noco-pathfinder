@@ -13,6 +13,7 @@ import { AssumptionsDrawer } from '../components/AssumptionsDrawer'
 import { CashFlowChart } from '../components/CashFlowChart'
 import { ComparisonTable } from '../components/ComparisonTable'
 import { MeasureDrawer } from '../components/MeasureDrawer'
+import { OrderLab } from '../components/OrderLab'
 import { Roadmap, type FuturePhase } from '../components/Roadmap'
 import { StageFooter, StageNav } from '../components/Stages'
 import { AnimatedNumber, Button, EstimateNote, PageHeader, Panel, Slider, Tag, cx } from '../components/ui'
@@ -430,6 +431,7 @@ export function StrategyPage({
         {sub === 2 &&
           needsPlan(
             plan && (
+              <>
               <Panel title="Why this sequence?" description="How upgrade order changes cost and savings for this building">
                 <div className="grid gap-8 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
                   <ol className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
@@ -446,6 +448,8 @@ export function StrategyPage({
                   </div>
                 </div>
               </Panel>
+              {plan.order.length > 1 && <OrderLab key={plan.order.join()} plan={plan} base={base} scenario={scenario} />}
+              </>
             ),
           )}
 

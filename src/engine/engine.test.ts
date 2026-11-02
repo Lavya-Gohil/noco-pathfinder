@@ -4,7 +4,7 @@ import { CURRENT_YEAR, buildBaseline, climateFor, measuredCoolingShare } from '.
 import { dataConfidence } from './confidence'
 import { money } from '../utils/format'
 import { hvacTradeoff, nextSteps, valueNote, versusHvacAlone } from './explanations'
-import { bestOrder, cashPosition, discount, permutations, simulate, type PlanResult } from './interactions'
+import { bestOrder, cashPosition, discount, permutations, rankOrders, simulate, type PlanResult } from './interactions'
 import { MEASURE_IDS, SOLAR_BILL_VALUE, envelopeLoadReduction, measureConfidence } from './measures'
 import { BALANCED_MAX_STEP_PAYBACK, optimize, recommendedPath } from './optimizer'
 import type { MeasureId } from '../types'
@@ -270,6 +270,15 @@ describe('choosing the order', () => {
       if (other.net <= scenario.budget) expect(chosen.npv).toBeGreaterThanOrEqual(other.npv - 0.01)
     }
     expect(chosen.net).toBeLessThanOrEqual(scenario.budget)
+  })
+
+  it('ranks every order, with those that fit the budget first', () => {
+    const ranked = rankOrders(['envelope', 'led', 'hvac'], base, { ...scenario, budget: 590_000 })
+    expect(ranked).toHaveLength(6)
+    expect(ranked[0].order).toEqual(bestOrder(['envelope', 'led', 'hvac'], base, { ...scenario, budget: 590_000 }))
+    const fits = ranked.map((p) => p.net <= 590_000.5)
+    expect(fits.lastIndexOf(true)).toBeLessThan(fits.indexOf(false))
+    expect(fits).toContain(false)
   })
 
   it('prefers a cheaper order when only that one fits', () => {
