@@ -443,7 +443,7 @@ export function IntakePage({
 
             {sub === 3 && (
               <div className="grid gap-6">
-                <Field label="Project budget" error={errors.budget} hint="$25,000 – $1,000,000" htmlFor="f-budget" className="sm:max-w-[calc(50%-0.625rem)]">
+                <Field label="Project budget" error={errors.budget} hint="$25,000 – $5,000,000" htmlFor="f-budget" className="sm:max-w-[calc(50%-0.625rem)]">
                   {num('budget', '250,000', { prefix: '$' })}
                 </Field>
                 <fieldset>

@@ -5,14 +5,14 @@
 // load is LEFT after the earlier phases, and some measures change the cost of
 // later ones. The four interaction rules are:
 //
-//   A. Envelope before HVAC  → design load (and HVAC cost) drops ~10%; HVAC
+//   A. Envelope before HVAC  → design load (and HVAC cost) drops; HVAC
 //      heating/cooling savings shrink because envelope already captured some.
 //   B. LED before HVAC       → less internal heat gain: cooling load and HVAC
 //      capacity drop slightly; HVAC cooling savings adjusted down.
 //   C. Controls + HVAC       → overlap factor on HVAC-related control savings,
 //      so the pair saves less than the naive sum.
-//   D. Efficiency before solar → array sized against remaining demand, not the
-//      original baseline.
+//   D. Efficiency + solar    → array sized to the demand left once the plan is
+//      complete. It costs less and generates less, so it isn't a saving by itself.
 
 import type { MeasureId, Scenario } from '../types'
 import { capIncentive, clamp, nonNeg, payback } from '../utils/sanity'
@@ -25,10 +25,12 @@ import {
 } from './baseline'
 import {
   CONTROLS_FRACTIONS,
+  SOLAR_BILL_VALUE,
   SOLAR_COST_PER_W,
   controlsGross,
   envelopeFractions,
   envelopeGross,
+  envelopeLoadReduction,
   hvacCostPerTon,
   hvacFractions,
   ledGross,
@@ -38,18 +40,23 @@ import {
 import type { ConfidenceLevel } from '../types'
 
 // ---- Interaction constants ----
-/** Envelope-first reduction in HVAC design load (rule A). */
-export const ENVELOPE_LOAD_REDUCTION = 0.1
+/** Share of HVAC cost that scales with capacity. Labor, cranes and curbs mostly don't shrink with tons. */
+export const HVAC_SCALABLE_COST_SHARE = 0.7
 /** Share of LED kWh savings that also comes off cooling (rule B), before climate adjustment. */
 export const LED_COOLING_SHARE = 0.12
 /** LED-first reduction in HVAC design load (rule B). */
 export const LED_LOAD_REDUCTION = 0.02
+/** Share of LED kWh savings that was useful heat in winter, by climate. */
+const LED_HEATING_SHARE = { cold: 0.35, mixed: 0.2, hot: 0.05 } as const
+/** Heating efficiency used to convert lost lighting heat into extra purchased heat. */
+const LED_HEAT_EFFICIENCY = { 'Heat Pump': 3, 'Electric Resistance': 1, gas: 0.8 } as const
+/** The LED heating penalty may not exceed this share of remaining heating. */
+const LED_HEATING_MAX_SHARE = 0.25
+const THERMS_PER_KWH = KWH_TO_MMBTU / THERM_TO_MMBTU
 /** Fraction of HVAC-related control savings kept when new HVAC is also installed (rule C). */
 export const CONTROLS_HVAC_OVERLAP = 0.8
 /** Solar sized to this share of remaining electricity demand (rule D). */
 export const SOLAR_TARGET_SHARE = 0.35
-/** Hard cap: solar production may never exceed this share of remaining demand. */
-export const SOLAR_MAX_SHARE = 0.5
 /** Combined savings may never exceed this share of total utility spend. */
 export const MAX_SAVINGS_SHARE = 0.85
 
@@ -82,6 +89,7 @@ export interface StepResult {
   incentive: number
   net: number
   kwhSaved: number
+  /** Negative when the measure adds heating, as LEDs do in winter. */
   heatSaved: number
   kwhGenerated: number
   annualSavings: number
@@ -149,8 +157,9 @@ interface RawStep {
 /**
  * Apply one measure to the load state (mutates `s`). `plan` is the full set of
  * measures in the plan so overlap rules can see measures that come later.
+ * `finalDemand` is the electricity left when the plan is complete, which sizes solar.
  */
-function applyMeasure(id: MeasureId, s: LoadState, base: Baseline, plan: MeasureId[]): RawStep {
+function applyMeasure(id: MeasureId, s: LoadState, base: Baseline, plan: MeasureId[], finalDemand: number): RawStep {
   const effects: InteractionEffect[] = []
   const has = (m: MeasureId) => s.done.includes(m)
   const ePrice = base.elecPrice
@@ -163,7 +172,16 @@ function applyMeasure(id: MeasureId, s: LoadState, base: Baseline, plan: Measure
       const coolSaved = Math.min(s.coolingKwh * 0.15, saved * LED_COOLING_SHARE * climate)
       s.coolingKwh -= coolSaved
       if (base.building.cooling !== 'None') s.designLoadFactor *= 1 - LED_LOAD_REDUCTION
-      return { gross: ledGross(base), kwhSaved: saved + coolSaved, heatSaved: 0, kwhGenerated: 0, solarKw: 0, effects }
+      // The lights' waste heat was doing some useful heating, which now has to be bought.
+      const lostHeatKwh = saved * LED_HEATING_SHARE[base.climate]
+      const heating = base.building.heating
+      const addedHeat =
+        heating === 'Heat Pump' || heating === 'Electric Resistance'
+          ? lostHeatKwh / LED_HEAT_EFFICIENCY[heating]
+          : (lostHeatKwh * THERMS_PER_KWH) / LED_HEAT_EFFICIENCY.gas
+      const heatPenalty = Math.min(addedHeat, s.heatUnits * LED_HEATING_MAX_SHARE)
+      s.heatUnits += heatPenalty
+      return { gross: ledGross(base), kwhSaved: saved + coolSaved, heatSaved: -heatPenalty, kwhGenerated: 0, solarKw: 0, effects }
     }
 
     case 'envelope': {
@@ -172,7 +190,7 @@ function applyMeasure(id: MeasureId, s: LoadState, base: Baseline, plan: Measure
       const coolSaved = s.coolingKwh * f.cool
       s.heatUnits -= heatSaved
       s.coolingKwh -= coolSaved
-      s.designLoadFactor *= 1 - ENVELOPE_LOAD_REDUCTION
+      s.designLoadFactor *= 1 - envelopeLoadReduction(base)
       if (has('hvac')) {
         effects.push({
           rule: 'envelope-hvac',
@@ -187,10 +205,8 @@ function applyMeasure(id: MeasureId, s: LoadState, base: Baseline, plan: Measure
     }
 
     case 'hvac': {
-      const fullTons = base.designTons
-      const tons = fullTons * s.designLoadFactor
-      const perTon = hvacCostPerTon(base)
-      const gross = tons * perTon
+      const fullCost = base.designTons * hvacCostPerTon(base)
+      const gross = fullCost * (1 - HVAC_SCALABLE_COST_SHARE * (1 - s.designLoadFactor))
       const f = hvacFractions(base)
       const heatSaved = s.heatUnits * f.heat
       const coolSaved = s.coolingKwh * f.cool
@@ -200,8 +216,8 @@ function applyMeasure(id: MeasureId, s: LoadState, base: Baseline, plan: Measure
 
       // Split the total capacity reduction between rules A and B so the two
       // effects always add up to (full-size cost - right-sized cost).
-      const totalReduction = fullTons * perTon - gross
-      const envelopeShare = has('envelope') ? fullTons * perTon * ENVELOPE_LOAD_REDUCTION : 0
+      const totalReduction = fullCost - gross
+      const envelopeShare = has('envelope') ? fullCost * HVAC_SCALABLE_COST_SHARE * envelopeLoadReduction(base) : 0
       if (has('envelope')) {
         effects.push({
           rule: 'envelope-hvac',
@@ -272,26 +288,24 @@ function applyMeasure(id: MeasureId, s: LoadState, base: Baseline, plan: Measure
     }
 
     case 'solar': {
-      const remaining = remainingElecKwh(s, base)
       const roofLimitKwh = base.roofKw * base.solarYield
-      const target = Math.min(remaining * SOLAR_TARGET_SHARE, roofLimitKwh, remaining * SOLAR_MAX_SHARE)
+      const target = Math.min(finalDemand * SOLAR_TARGET_SHARE, roofLimitKwh)
       const kw = target / base.solarYield
       const gross = kw * 1000 * SOLAR_COST_PER_W
 
       const baselineElec = base.elecKwh + (base.heatFuel === 'electric' ? base.heatUnits : 0)
       const naiveKwh = Math.min(baselineElec * SOLAR_TARGET_SHARE, roofLimitKwh)
       const naiveKw = naiveKwh / base.solarYield
-      const efficiencyBefore = s.done.some((m) => m !== 'solar')
-      if (efficiencyBefore && naiveKw - kw > 0.5) {
+      if (naiveKw - kw > 0.5) {
         effects.push({
           rule: 'efficiency-solar',
-          title: 'Efficiency first → right-sized solar',
-          detail: `Solar is sized against the building's reduced electricity demand (${Math.round(
-            remaining,
-          ).toLocaleString()} kWh) instead of the original baseline. That avoids about ${Math.round(
+          title: 'Solar sized to the reduced load',
+          detail: `The array is sized to the ${Math.round(
+            finalDemand,
+          ).toLocaleString()} kWh left after the other upgrades, about ${Math.round(
             naiveKw - kw,
-          )} kW of capacity the building would no longer need.`,
-          capitalImpact: (naiveKw - kw) * 1000 * SOLAR_COST_PER_W,
+          )} kW smaller than today's demand would suggest. It costs less and also generates less.`,
+          capitalImpact: 0,
           savingsImpact: 0,
         })
       }
@@ -300,13 +314,26 @@ function applyMeasure(id: MeasureId, s: LoadState, base: Baseline, plan: Measure
   }
 }
 
+/** A step's value per year. Solar kWh avoid less of the bill than kWh saved, which also cut demand. */
+function stepSavings(r: RawStep, base: Baseline): number {
+  return (r.kwhSaved + r.kwhGenerated * SOLAR_BILL_VALUE) * base.elecPrice + r.heatSaved * base.heatPrice
+}
+
 function standalone(id: MeasureId, base: Baseline): { gross: number; savings: number } {
   const s = initialState(base)
-  const r = applyMeasure(id, s, base, [id])
-  return {
-    gross: r.gross,
-    savings: (r.kwhSaved + r.kwhGenerated) * base.elecPrice + r.heatSaved * base.heatPrice,
+  const r = applyMeasure(id, s, base, [id], remainingElecKwh(s, base))
+  return { gross: r.gross, savings: stepSavings(r, base) }
+}
+
+/** Electricity left once every non-solar measure in the plan is done. */
+function finalDemandFor(order: MeasureId[], base: Baseline): number {
+  const s = initialState(base)
+  for (const id of order) {
+    if (id === 'solar') continue
+    applyMeasure(id, s, base, order, 0)
+    s.done.push(id)
   }
+  return remainingElecKwh(s, base)
 }
 
 const RANK: Record<ConfidenceLevel, number> = { Low: 0, Medium: 1, High: 2 }
@@ -317,13 +344,15 @@ export function simulate(order: MeasureId[], base: Baseline, scenario: Scenario,
   const steps: StepResult[] = []
   const incentiveRate = clamp(scenario.incentiveRate, 0, 0.3)
 
+  const finalDemand = finalDemandFor(order, base)
+
   order.forEach((id, i) => {
-    const r = applyMeasure(id, s, base, order)
+    const r = applyMeasure(id, s, base, order, finalDemand)
     s.done.push(id)
     const gross = nonNeg(r.gross)
     const incentive = capIncentive(gross * incentiveRate, gross)
     const net = nonNeg(gross - incentive)
-    const annualSavings = nonNeg((r.kwhSaved + r.kwhGenerated) * base.elecPrice + r.heatSaved * base.heatPrice)
+    const annualSavings = nonNeg(stepSavings(r, base))
     const elecT = (r.kwhSaved + r.kwhGenerated) * GRID_T_PER_KWH
     const heatT = base.heatFuel === 'gas' ? r.heatSaved * GAS_T_PER_THERM : r.heatSaved * GRID_T_PER_KWH
     const heatM = base.heatFuel === 'gas' ? r.heatSaved * THERM_TO_MMBTU : r.heatSaved * KWH_TO_MMBTU
@@ -337,7 +366,7 @@ export function simulate(order: MeasureId[], base: Baseline, scenario: Scenario,
       incentive,
       net,
       kwhSaved: nonNeg(r.kwhSaved),
-      heatSaved: nonNeg(r.heatSaved),
+      heatSaved: r.heatSaved,
       kwhGenerated: nonNeg(r.kwhGenerated),
       annualSavings,
       co2: nonNeg(elecT + heatT),

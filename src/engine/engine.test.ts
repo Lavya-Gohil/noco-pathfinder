@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { DEMO_FORM, toBuilding } from '../utils/building'
-import { buildBaseline, climateFor, measuredCoolingShare } from './baseline'
+import { CURRENT_YEAR, buildBaseline, climateFor, measuredCoolingShare } from './baseline'
 import { dataConfidence } from './confidence'
 import { nextSteps } from './explanations'
 import { simulate, type PlanResult } from './interactions'
-import { MEASURE_IDS } from './measures'
+import { MEASURE_IDS, SOLAR_BILL_VALUE, envelopeLoadReduction } from './measures'
 import { BALANCED_MAX_STEP_PAYBACK, optimize, recommendedPath } from './optimizer'
 import type { MeasureId } from '../types'
 
@@ -107,18 +107,116 @@ describe('Balanced path', () => {
   const stepPaybacks = (p: PlanResult) => p.steps.map((s) => s.net / s.annualSavings)
 
   it('keeps every phase within the payback limit when it can', () => {
+    const midLife = buildBaseline({ ...demo, hvacYear: CURRENT_YEAR - 14 }, 0)
     for (const budget of [100_000, 250_000, 400_000, 1_000_000]) {
-      const s = optimize(base, { ...scenario, budget }).strategies.find((x) => x.id === 'balanced')!
+      const s = optimize(midLife, { ...scenario, budget }).strategies.find((x) => x.id === 'balanced')!
       for (const pb of stepPaybacks(s.plan!)) expect(pb).toBeLessThanOrEqual(BALANCED_MAX_STEP_PAYBACK)
       expect(s.note).toBeUndefined()
     }
   })
 
   it('says so when no plan can meet the limit', () => {
-    const lowBills = buildBaseline({ ...demo, elecCost: 20_000, heatCost: 5_000, kwh: null, monthlyKwh: null }, 0)
+    const lowBills = buildBaseline({ ...demo, elecCost: 20_000, heatCost: 5_000, kwh: null, monthlyKwh: null, hvacYear: CURRENT_YEAR - 14 }, 0)
     const s = optimize(lowBills, { ...scenario, budget: 1_000_000 }).strategies.find((x) => x.id === 'balanced')!
     expect(s.plan).not.toBeNull()
     expect(s.note).toContain('closest available')
+  })
+})
+
+describe('sequencing value', () => {
+  it('fits the demo budget only in the sequenced order', () => {
+    const balanced = optimize(base, scenario).strategies.find((s) => s.id === 'balanced')!.plan!
+    expect(balanced.order).toContain('hvac')
+    expect(balanced.net).toBeLessThanOrEqual(scenario.budget)
+    expect(balanced.unsequencedNet).toBeGreaterThan(scenario.budget)
+  })
+
+  it('does not count a smaller solar array as a saving', () => {
+    const plan = simulate(['envelope', 'led', 'controls', 'solar'], base, scenario)
+    expect(plan.sequencingSavings).toBeLessThan(1)
+    expect(plan.steps.find((s) => s.id === 'solar')!.effects.every((e) => e.capitalImpact === 0)).toBe(true)
+  })
+
+  it('sizes solar the same wherever it falls in the plan', () => {
+    const first = simulate(['solar', 'led', 'envelope'], base, scenario).steps.find((s) => s.id === 'solar')!
+    const last = simulate(['led', 'envelope', 'solar'], base, scenario).steps.find((s) => s.id === 'solar')!
+    expect(first.solarKw).toBeCloseTo(last.solarKw, 6)
+    expect(first.net).toBeCloseTo(last.net, 6)
+  })
+
+  it('shrinks solar when efficiency reduces demand', () => {
+    const alone = simulate(['solar'], base, scenario).steps[0]
+    const after = simulate(['led', 'solar'], base, scenario).steps[1]
+    expect(after.solarKw).toBeLessThan(alone.solarKw)
+  })
+})
+
+describe('measure realism', () => {
+  const hvacGross = (order: MeasureId[], b = base) => simulate(order, b, scenario).steps.find((s) => s.id === 'hvac')!.gross
+
+  it('values solar below the average electricity price', () => {
+    const s = simulate(['solar'], base, scenario).steps[0]
+    expect(s.annualSavings).toBeCloseTo(s.kwhGenerated * base.elecPrice * SOLAR_BILL_VALUE, 6)
+  })
+
+  it('takes a winter heating penalty off LED savings, largest in cold climates', () => {
+    const penalty = (state: string) => -simulate(['led'], buildBaseline({ ...demo, state }, 0), scenario).steps[0].heatSaved
+    expect(penalty('NY')).toBeGreaterThan(penalty('CA'))
+    expect(penalty('CA')).toBeGreaterThan(penalty('TX'))
+    expect(penalty('TX')).toBeGreaterThan(0)
+  })
+
+  it('takes no LED heating penalty when there is no heating to add to', () => {
+    const noHeat = buildBaseline({ ...demo, heatCost: 0 }, 0)
+    expect(simulate(['led'], noHeat, scenario).steps[0].heatSaved).toBeCloseTo(0, 9)
+  })
+
+  it('reduces design load more in older buildings', () => {
+    const old = buildBaseline({ ...demo, yearBuilt: 1970, hvacYear: null }, 0)
+    const recent = buildBaseline({ ...demo, yearBuilt: 2008, hvacYear: null }, 0)
+    expect(envelopeLoadReduction(old)).toBeGreaterThan(envelopeLoadReduction(recent))
+    expect(hvacGross(['envelope', 'hvac'], old) / hvacGross(['hvac'], old)).toBeLessThan(hvacGross(['envelope', 'hvac'], recent) / hvacGross(['hvac'], recent))
+  })
+
+  it('does not cut HVAC cost as fast as capacity', () => {
+    const ratio = hvacGross(['envelope', 'hvac']) / hvacGross(['hvac'])
+    expect(ratio).toBeGreaterThan(1 - envelopeLoadReduction(base))
+    expect(ratio).toBeLessThan(1)
+  })
+
+  it('keeps the capital effects equal to the HVAC cost reduction', () => {
+    const plan = simulate(['envelope', 'led', 'hvac'], base, scenario)
+    const hvac = plan.steps.find((s) => s.id === 'hvac')!
+    const capital = hvac.effects.reduce((a, e) => a + e.capitalImpact, 0)
+    expect(capital).toBeCloseTo(plan.unsequencedNet - plan.net, 3)
+  })
+
+  describe('recent HVAC', () => {
+    const recent = buildBaseline({ ...demo, hvacYear: CURRENT_YEAR - 2 }, 0)
+
+    it('is not recommended for replacement, but stays in the comparison', () => {
+      const r = optimize(recent, { ...scenario, budget: 5_000_000 })
+      expect(r.notAdvised.hvac).toContain('2 years')
+      expect(r.candidates).toHaveLength(15)
+      expect(r.plans).toHaveLength(31)
+      for (const s of r.strategies) expect(s.plan!.order).not.toContain('hvac')
+    })
+
+    it('is still an option when it is electric resistance heat', () => {
+      const resistance = buildBaseline({ ...demo, heating: 'Electric Resistance', hvacYear: CURRENT_YEAR - 2 }, 0)
+      expect(optimize(resistance, scenario).notAdvised.hvac).toBeUndefined()
+    })
+
+    it('uses building age when the install year is unknown', () => {
+      const newBuild = buildBaseline({ ...demo, yearBuilt: CURRENT_YEAR - 3, hvacYear: null }, 0)
+      expect(optimize(newBuild, scenario).notAdvised.hvac).toBeDefined()
+    })
+  })
+
+  it('exempts HVAC past its service life from the payback limit', () => {
+    const balanced = optimize(base, scenario).strategies.find((s) => s.id === 'balanced')!
+    expect(balanced.plan!.order).toContain('hvac')
+    expect(balanced.note).toBeUndefined()
   })
 })
 

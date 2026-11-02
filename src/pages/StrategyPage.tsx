@@ -174,7 +174,7 @@ function SequenceComparison({ plan }: { plan: PlanResult }) {
         <div className="mt-4">
           <CompareBars
             rows={[
-              { label: eff.step.id === 'solar' ? 'Sized for today’s demand' : 'Sized for today’s building', value: before, tone: 'muted' },
+              { label: 'Sized for today’s building', value: before, tone: 'muted' },
               { label: `After ${causes}`, value: after, tone: 'brand' },
             ]}
           />
@@ -254,14 +254,14 @@ export function StrategyPage({
 
   const future: FuturePhase[] = useMemo(() => {
     if (!plan) return []
-    return MEASURE_IDS.filter((m) => !plan.order.includes(m))
+    return MEASURE_IDS.filter((m) => !plan.order.includes(m) && !result.notAdvised[m])
       .map((m) => {
         const bigger = byKey.get([...plan.order, m].sort().join(','))
         return { id: m, extraBudget: bigger ? Math.max(0, bigger.net - plan.net) : 0 }
       })
       .filter((f) => f.extraBudget > 0)
       .sort((a, b) => a.extraBudget - b.extraBudget)
-  }, [plan, byKey])
+  }, [plan, byKey, result.notAdvised])
 
   const why = plan ? whyThisOrder(plan, scenario.budget).slice(0, 4) : []
   const fitsBecauseSequenced = plan ? plan.unsequencedNet > scenario.budget && plan.net <= scenario.budget : false
@@ -284,7 +284,7 @@ export function StrategyPage({
       onChange={(v) => set({ budget: v })}
       display={money(scenario.budget)}
       minLabel="$25K"
-      maxLabel="$1M"
+      maxLabel="$5M"
     />
   )
 
@@ -347,7 +347,7 @@ export function StrategyPage({
             <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
               <p className="text-[13px] text-fg-2">Select a path to see its roadmap. Move the budget to see paths change.</p>
               <span className="tnum text-[12px] text-fg-2">
-                {result.plans.length} combinations tested · {result.affordable.length} within budget
+                {result.candidates.length} combinations tested · {result.affordable.length} within budget
               </span>
             </div>
             <div data-tour="strategy-paths" className="grid gap-5 lg:grid-cols-3">
@@ -483,7 +483,7 @@ export function StrategyPage({
             description="Each measure on its own, before interactions. Select a measure for details."
             bodyClassName="p-0"
           >
-            <ComparisonTable singles={singles} inPlan={plan?.order ?? []} onOpen={setDrawer} />
+            <ComparisonTable singles={singles} inPlan={plan?.order ?? []} onOpen={setDrawer} notAdvised={result.notAdvised} />
             <p className="border-t border-line/70 px-6 py-3 text-[12px] text-fg-3">
               Potential incentive — eligibility requires verification. Stand-alone savings don't sum to plan savings because overlap is removed.
             </p>

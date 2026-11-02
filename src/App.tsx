@@ -36,7 +36,7 @@ export default function App() {
   const [building, setBuilding] = useState<Building | null>(restored?.analyzedForm ? toBuilding(restored.analyzedForm) : null)
   /** The form values behind `building`, to tell when the results no longer match the form. */
   const [analyzedForm, setAnalyzedForm] = useState<BuildingForm | null>(restored?.analyzedForm ?? null)
-  const [scenario, setScenario] = useState<Scenario>(restored?.scenario ?? { budget: 250_000, elecPriceChange: 0, incentiveRate: DEFAULT_INCENTIVE })
+  const [scenario, setScenario] = useState<Scenario>(restored?.scenario ?? { budget: 600_000, elecPriceChange: 0, incentiveRate: DEFAULT_INCENTIVE })
   const [selected, setSelected] = useState<PathId>(restored?.selected ?? 'balanced')
   const [tourIndex, setTourIndex] = useState<number | null>(null)
   const [hash, setHash] = useState(() => window.location.hash)

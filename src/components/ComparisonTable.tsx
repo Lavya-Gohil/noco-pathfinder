@@ -13,10 +13,12 @@ export function ComparisonTable({
   singles,
   inPlan,
   onOpen,
+  notAdvised,
 }: {
   singles: Record<MeasureId, PlanResult>
   inPlan: MeasureId[]
   onOpen: (id: MeasureId) => void
+  notAdvised: Partial<Record<MeasureId, string>>
 }) {
   return (
     <div className="relative overflow-x-auto">
@@ -59,7 +61,7 @@ export function ComparisonTable({
                     </button>
                     {selected && <span className="text-[12px] text-brand-text">· In plan</span>}
                   </div>
-                  <div className="text-[12px] text-fg-2">{MEASURES[id].tagline}</div>
+                  <div className="text-[12px] text-fg-2">{notAdvised[id] ?? MEASURES[id].tagline}</div>
                 </td>
                 <td className={cx(td, 'text-right text-fg')}>{money(s.gross)}</td>
                 <td className={cx(td, 'text-right text-fg-2')}>−{money(s.incentive)}</td>

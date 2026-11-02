@@ -161,7 +161,7 @@ export const TOUR_STEPS: TourStep[] = [
     body: 'Every path is re-optimized the moment the budget changes. At higher budgets, Deep Retrofit adds controls and rooftop solar.',
     task: 'Drag the budget slider and watch the paths change.',
     advanceOn: 'input',
-    perform: (api) => api.setBudget(600_000),
+    perform: (api) => api.setBudget(1_000_000),
   },
   {
     chapter: 2,

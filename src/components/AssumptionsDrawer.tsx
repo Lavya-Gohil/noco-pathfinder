@@ -1,12 +1,12 @@
 import { GAS_PRICE_PER_THERM, GAS_T_PER_THERM, GRID_T_PER_KWH, type Baseline } from '../engine/baseline'
 import {
   CONTROLS_HVAC_OVERLAP,
-  ENVELOPE_LOAD_REDUCTION,
+  HVAC_SCALABLE_COST_SHARE,
   LED_LOAD_REDUCTION,
   MAX_SAVINGS_SHARE,
-  SOLAR_MAX_SHARE,
   SOLAR_TARGET_SHARE,
 } from '../engine/interactions'
+import { HVAC_SERVICE_LIFE, SOLAR_BILL_VALUE, envelopeLoadReduction } from '../engine/measures'
 import { BALANCED_MAX_STEP_PAYBACK } from '../engine/optimizer'
 import type { Scenario } from '../types'
 import { money, num, pct, signedPct } from '../utils/format'
@@ -75,12 +75,12 @@ export function AssumptionsDrawer({
         <Bullets
           items={[
             <>Each phase saves energy from the load left by earlier phases, never from the original baseline.</>,
-            <>Envelope before HVAC: design load −{pct(ENVELOPE_LOAD_REDUCTION)}, so HVAC cost falls by the same share.</>,
-            <>LED before HVAC: less lighting heat; capacity −{pct(LED_LOAD_REDUCTION)} and HVAC cooling savings adjusted down.</>,
+            <>Envelope before HVAC: design load −{pct(envelopeLoadReduction(base))} for this building. {pct(HVAC_SCALABLE_COST_SHARE)} of HVAC cost scales with capacity.</>,
+            <>LED before HVAC: less lighting heat; capacity −{pct(LED_LOAD_REDUCTION)} and HVAC cooling savings adjusted down. The lost heat adds some winter heating.</>,
             <>Controls with new HVAC: HVAC-related control savings × {CONTROLS_HVAC_OVERLAP} for overlap.</>,
-            <>Solar sized to {pct(SOLAR_TARGET_SHARE)} of remaining demand (cap {pct(SOLAR_MAX_SHARE)}), within roof limits.</>,
+            <>Solar sized to {pct(SOLAR_TARGET_SHARE)} of the demand left after the other upgrades, within roof limits, and valued at {pct(SOLAR_BILL_VALUE)} of the electricity price.</>,
             <>Combined savings capped at {pct(MAX_SAVINGS_SHARE)} of annual utility spend.</>,
-            <>Balanced path keeps every phase within a {BALANCED_MAX_STEP_PAYBACK}-year payback whenever the budget allows such a plan, and says so when it doesn't.</>,
+            <>Balanced path keeps every phase within a {BALANCED_MAX_STEP_PAYBACK}-year payback whenever the budget allows such a plan, and says so when it doesn't. HVAC past {HVAC_SERVICE_LIFE} years is exempt, since it needs replacing regardless.</>,
           ]}
         />
       </DrawerSection>
@@ -94,7 +94,7 @@ export function AssumptionsDrawer({
             'Lighting inventory and operating hours',
             'Roof structure, shading and interconnection rules for solar',
             'Incentive eligibility and current program terms',
-            'Contractor pricing for each scope',
+            'Contractor pricing for each scope. Costs here are planning figures and vary widely by region',
           ]}
         />
       </DrawerSection>

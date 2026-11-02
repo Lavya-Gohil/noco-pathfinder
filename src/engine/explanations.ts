@@ -114,12 +114,9 @@ export function phaseReason(plan: PlanResult, step: StepResult, base: Baseline):
       return earlier('hvac')
         ? 'Commissioned with the new HVAC so control sequences are programmed once, on equipment that will stay.'
         : 'Low-cost scheduling and setbacks that start saving within weeks of installation.'
-    case 'solar': {
-      const avoided = effect(step, 'efficiency-solar')
-      return avoided > 0
-        ? `Positioned after efficiency measures so the ${num(step.solarKw)} kW array is sized to reduced demand — avoiding ~${money(avoided)} of capacity the building would no longer need.`
-        : `Sized to offset ~${pct(step.kwhGenerated / Math.max(1, base.elecKwh))} of annual electricity use within roof limits.`
-    }
+    case 'solar':
+      return `A ${num(step.solarKw)} kW array sized to the demand left after the other upgrades, offsetting ~${pct(step.kwhGenerated / Math.max(1, base.elecKwh))} of today's electricity use within roof limits.`
+
   }
 }
 
@@ -174,12 +171,9 @@ export function whyThisOrder(plan: PlanResult, budget: number): WhyPoint[] {
     })
   }
   if (has('solar')) {
-    const s = step('solar')!
-    const avoided = effect(s, 'efficiency-solar')
     out.push({
-      title: 'Solar after efficiency',
-      text: "Solar is positioned after efficiency measures so generation is sized against the building's reduced electricity demand.",
-      impact: avoided > 0 ? `~${money(avoided)} of oversizing avoided` : undefined,
+      title: 'Solar sized to the reduced load',
+      text: "The array is sized to the electricity the building will still use once the other upgrades are done. It's the slowest payback here, so it comes after the upgrades that save more per dollar.",
     })
   }
   if (plan.overlapRemoved > 1) {

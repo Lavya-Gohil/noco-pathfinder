@@ -6,7 +6,7 @@ import type { MeasureId, Objective, PathId, Scenario } from '../types'
 import { clamp } from '../utils/sanity'
 import type { Baseline } from './baseline'
 import { simulate, sequence, type PlanResult } from './interactions'
-import { MEASURE_IDS } from './measures'
+import { MEASURE_IDS, hvacIsDue, hvacNotAdvised } from './measures'
 
 export interface Strategy {
   id: PathId
@@ -23,8 +23,13 @@ export interface Strategy {
 
 export interface OptimizerResult {
   strategies: Strategy[]
+  /** Every combination, including ones not advised. Use `candidates` for choosing. */
   plans: PlanResult[]
+  /** The combinations a path may choose from. */
+  candidates: PlanResult[]
   affordable: PlanResult[]
+  /** Measures left out of the candidates, and why. */
+  notAdvised: Partial<Record<MeasureId, string>>
   cheapestEntry: PlanResult | null
   /** Plan with every measure — the theoretical ceiling. */
   fullPlan: PlanResult
@@ -64,10 +69,13 @@ function interactionCount(p: PlanResult): number {
 /** Balanced plans only include measures that pay back on their own, after interactions. */
 export const BALANCED_MAX_STEP_PAYBACK = 10
 
-function worstStepPayback(p: PlanResult): number {
+/** Longest payback of any phase. HVAC past its service life is exempt: it has to be replaced regardless. */
+function worstStepPayback(p: PlanResult, hvacExempt: boolean): number {
   return Math.max(
     0,
-    ...p.steps.map((s) => (s.annualSavings > 0 ? s.net / s.annualSavings : Infinity)),
+    ...p.steps
+      .filter((s) => !(hvacExempt && s.id === 'hvac'))
+      .map((s) => (s.annualSavings > 0 ? s.net / s.annualSavings : Infinity)),
   )
 }
 
@@ -82,10 +90,13 @@ export function balancedScore(p: PlanResult, maxSavings: number, budget: number)
 
 export function optimize(base: Baseline, scenario: Scenario): OptimizerResult {
   const plans = combinations().map((ids) => simulate(sequence(ids, base), base, scenario))
+  const reason = hvacNotAdvised(base)
+  const notAdvised: Partial<Record<MeasureId, string>> = reason ? { hvac: reason } : {}
+  const candidates = plans.filter((p) => !p.order.some((m) => notAdvised[m]))
   const budget = Math.max(0, scenario.budget)
-  const affordable = plans.filter((p) => p.net <= budget + 0.5 && p.payback !== null)
-  const cheapestEntry = [...plans].sort((a, b) => a.net - b.net)[0] ?? null
-  const fullPlan = simulate(sequence(MEASURE_IDS, base), base, scenario)
+  const affordable = candidates.filter((p) => p.net <= budget + 0.5 && p.payback !== null)
+  const cheapestEntry = [...candidates].sort((a, b) => a.net - b.net)[0] ?? null
+  const fullPlan = simulate(sequence(MEASURE_IDS.filter((m) => !notAdvised[m]), base), base, scenario)
 
   // QUICK WINS — shortest payback; among near-ties (within half a year) take
   // the combination with the most annual savings so it's not a token project.
@@ -100,7 +111,8 @@ export function optimize(base: Baseline, scenario: Scenario): OptimizerResult {
   // Wins, Balanced offers that instead so the owner sees a real choice.
   const maxSavings = Math.max(0, ...affordable.map((p) => p.annualSavings))
   // Only plans where every phase pays back within the limit qualify, unless none can.
-  const qualifying = affordable.filter((p) => worstStepPayback(p) <= BALANCED_MAX_STEP_PAYBACK)
+  const hvacExempt = hvacIsDue(base)
+  const qualifying = affordable.filter((p) => worstStepPayback(p, hvacExempt) <= BALANCED_MAX_STEP_PAYBACK)
   const stepUp = quick ? qualifying.filter((p) => p !== quick && p.annualSavings > quick.annualSavings) : []
   const balancedPool = stepUp.length ? stepUp : qualifying.length ? qualifying : affordable
   let balanced: PlanResult | null = null
@@ -121,7 +133,7 @@ export function optimize(base: Baseline, scenario: Scenario): OptimizerResult {
 
   // Next step up: the cheapest plan that would beat the Deep path on energy.
   const nextDeeper = deep
-    ? [...plans]
+    ? [...candidates]
         .filter((p) => deep.order.every((m) => p.order.includes(m)) && p.mmbtu > deep.mmbtu * 1.02 && p.payback !== null)
         .sort((a, b) => a.net - b.net)[0] ?? null
     : null
@@ -149,5 +161,5 @@ export function optimize(base: Baseline, scenario: Scenario): OptimizerResult {
     }
   })
 
-  return { strategies, plans, affordable, cheapestEntry, fullPlan, nextDeeper }
+  return { strategies, plans, candidates, affordable, notAdvised, cheapestEntry, fullPlan, nextDeeper }
 }

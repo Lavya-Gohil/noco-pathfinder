@@ -16,7 +16,7 @@ export const DEMO_FORM: BuildingForm = {
   // Buffalo office with rooftop units: flat-ish shoulder months, summer cooling peak. Sums to 720,000.
   monthly: ['47000', '44500', '45500', '43000', '58000', '82000', '95000', '92000', '77000', '43500', '45000', '47500'],
   hvacYear: '1994',
-  budget: '250000',
+  budget: '600000',
   objective: 'Balanced',
 }
 
@@ -49,7 +49,7 @@ export const sameForm = (a: BuildingForm, b: BuildingForm) =>
   (Object.keys(a) as (keyof BuildingForm)[]).every((k) => String(a[k]).replace(/,/g, '') === String(b[k]).replace(/,/g, ''))
 
 export const BUDGET_MIN = 25_000
-export const BUDGET_MAX = 1_000_000
+export const BUDGET_MAX = 5_000_000
 
 /** Strip "$", "," and whitespace; return NaN for anything not a plain number. */
 export function parseNum(v: string): number {
@@ -127,7 +127,7 @@ export function validate(f: BuildingForm): FormErrors {
 
   const budget = parseNum(f.budget)
   if (!Number.isFinite(budget)) e.budget = 'Enter a project budget'
-  else if (budget < BUDGET_MIN || budget > BUDGET_MAX) e.budget = 'Between $25,000 and $1,000,000'
+  else if (budget < BUDGET_MIN || budget > BUDGET_MAX) e.budget = 'Between $25,000 and $5,000,000'
 
   return e
 }

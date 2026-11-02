@@ -25,4 +25,8 @@ Live: https://lavya-gohil.github.io/noco-pathfinder/
 | `explanations.ts` | Diagnosis signals, phase reasons, "Why this order" narrative |
 | `confidence.ts` | Data-confidence score and most valuable next data point |
 
-All figures are illustrative pre-audit estimates.
+All figures are illustrative pre-audit estimates. [docs/assumptions.md](docs/assumptions.md) lists where each number comes from and how far to trust it.
+
+```bash
+npm test           # engine, input and app behaviour tests
+```

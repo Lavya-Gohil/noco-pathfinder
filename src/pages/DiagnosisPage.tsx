@@ -82,7 +82,7 @@ export function DiagnosisPage({
                       : `Reported · $${base.elecPriceBase.toFixed(3)}/kWh effective`
                 }
               />
-              <KpiTile label="Retrofit opportunity" value={opportunity.label} sub={`${opportunity.detail} with all five measures`} />
+              <KpiTile label="Retrofit opportunity" value={opportunity.label} sub={`${opportunity.detail} with every measure advised here`} />
             </KpiGrid>
 
             <Panel className="mt-6" tour="diag-breakdown" title="Energy use breakdown" description="Estimated share of annual energy spend by end use">

@@ -3,7 +3,7 @@ import { buildBaseline } from '../src/engine/baseline'
 import { optimize } from '../src/engine/optimizer'
 
 const b = toBuilding(DEMO_FORM)
-for (const [budget, price, inc] of [[250000,0,0.15],[25000,0,0.15],[100000,0,0.15],[150000,0,0.15],[400000,0,0.15],[600000,0,0.15],[1000000,0,0.15],[250000,0.5,0.3],[250000,-0.2,0]]) {
+for (const [budget, price, inc] of [[250000,0,0.15],[100000,0,0.15],[400000,0,0.15],[600000,0,0.15],[800000,0,0.15],[1000000,0,0.15],[1500000,0,0.15],[600000,0.5,0.3],[600000,-0.2,0]]) {
   const base = buildBaseline(b, price)
   const r = optimize(base, { budget, elecPriceChange: price, incentiveRate: inc })
   console.log(`\n=== budget ${budget} price ${price} inc ${inc} | spend ${base.totalSpend.toFixed(0)} tons ${base.designTons.toFixed(0)} roofKw ${base.roofKw.toFixed(0)}`)
