@@ -149,7 +149,7 @@ const FEATURES: { icon: ReactNode; title: string; text: string }[] = [
   { icon: <LockKeyhole className="h-5 w-5" />, title: 'Private by design', text: 'Runs entirely in the browser. No accounts, no database, no analytics.' },
 ]
 
-export function HomePage({ onDemo, onStart, onLaunch }: { onDemo: () => void; onStart: () => void; onLaunch: () => void }) {
+export function HomePage({ onDemo, onStart, onLaunch, onSample }: { onDemo: () => void; onStart: () => void; onLaunch: () => void; onSample: () => void }) {
   const { plan, capital, orders, b, base, comparison } = useDemoResult()
 
   return (
@@ -201,6 +201,9 @@ export function HomePage({ onDemo, onStart, onLaunch }: { onDemo: () => void; on
               Start an assessment <ArrowRight className="h-4 w-4" aria-hidden />
             </Button>
           </div>
+          <button type="button" onClick={onSample} className="mt-4 block text-[14px] font-medium text-brand-text hover:underline">
+            Or go straight to the sample results
+          </button>
           <p className="mt-4 flex items-center gap-2 text-[12px] text-fg-3">
             <ShieldCheck className="h-3.5 w-3.5" aria-hidden /> Free to try. Runs in your browser. Nothing is uploaded.
           </p>

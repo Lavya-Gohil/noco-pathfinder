@@ -153,6 +153,22 @@ export default function App() {
     home: goHome,
   }
 
+  /** Jump straight to the sample building's results, skipping the intake and tour. */
+  const openSample = () => {
+    enterApp()
+    setTourIndex(null)
+    setForm(DEMO_FORM)
+    runAnalysis(DEMO_FORM)
+    setMaxStep(ORDER.length - 1)
+    setStep('strategy')
+  }
+
+  // #/demo is a shareable link to the sample results.
+  useEffect(() => {
+    if (hash === '#/demo') openSample()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hash])
+
   /** Leave the sample building and start a blank assessment. */
   const startOwn = () => {
     enterApp()
@@ -169,7 +185,7 @@ export default function App() {
   const demoLoaded = sameForm(form, DEMO_FORM)
 
   if (route === 'home') {
-    return <HomePage onDemo={() => startTour(0)} onStart={startOwn} onLaunch={enterApp} />
+    return <HomePage onDemo={() => startTour(0)} onStart={startOwn} onLaunch={enterApp} onSample={openSample} />
   }
 
   return (

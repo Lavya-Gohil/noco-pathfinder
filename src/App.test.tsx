@@ -46,6 +46,30 @@ async function analyzeDemo() {
   return user
 }
 
+describe('sample results shortcut', () => {
+  const start = () =>
+    render(
+      <ThemeProvider>
+        <App />
+      </ThemeProvider>,
+    )
+
+  it('opens the strategy page directly from the #/demo link', async () => {
+    window.location.hash = '#/demo'
+    start()
+    expect(await screen.findByRole('heading', { name: 'Retrofit strategy' })).toBeInTheDocument()
+    expect(step(/Report/)).toBeEnabled()
+    expect(screen.queryByRole('button', { name: 'Skip tour' })).toBeNull()
+  })
+
+  it('opens from the homepage button', async () => {
+    window.location.hash = '#/'
+    start()
+    await userEvent.setup().click(screen.getByRole('button', { name: /straight to the sample results/ }))
+    expect(await screen.findByRole('heading', { name: 'Retrofit strategy' })).toBeInTheDocument()
+  })
+})
+
 describe('reloading the page', () => {
   it('keeps the assessment and its results', async () => {
     await analyzeDemo()
