@@ -5,7 +5,7 @@
 import type { Building, BuildingType, ClimateZone } from '../types'
 import { clamp, nonNeg } from '../utils/sanity'
 
-export const CURRENT_YEAR = 2026
+export const CURRENT_YEAR = new Date().getFullYear()
 /** Year assumed when the user leaves "year built" blank. */
 export const DEFAULT_YEAR = 1990
 /** Assumed natural-gas price used to convert heating spend into therms. */

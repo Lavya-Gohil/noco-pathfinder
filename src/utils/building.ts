@@ -1,3 +1,4 @@
+import { CURRENT_YEAR } from '../engine/baseline'
 import type { Building, BuildingForm } from '../types'
 
 export const DEMO_FORM: BuildingForm = {
@@ -75,7 +76,7 @@ export function validate(f: BuildingForm): FormErrors {
 
   if (f.yearBuilt.trim()) {
     const y = parseNum(f.yearBuilt)
-    if (!Number.isInteger(y) || y < 1850 || y > 2026) e.yearBuilt = 'Enter a year between 1850 and 2026'
+    if (!Number.isInteger(y) || y < 1850 || y > CURRENT_YEAR) e.yearBuilt = `Enter a year between 1850 and ${CURRENT_YEAR}`
   }
 
   const elec = parseNum(f.elecCost)
@@ -100,7 +101,9 @@ export function validate(f: BuildingForm): FormErrors {
 
   if (f.hvacYear.trim()) {
     const y = parseNum(f.hvacYear)
-    if (!Number.isInteger(y) || y < 1950 || y > 2026) e.hvacYear = 'Enter a year between 1950 and 2026'
+    const built = parseNum(f.yearBuilt)
+    if (!Number.isInteger(y) || y < 1950 || y > CURRENT_YEAR) e.hvacYear = `Enter a year between 1950 and ${CURRENT_YEAR}`
+    else if (Number.isInteger(built) && y < built) e.hvacYear = 'Cannot be earlier than the year built'
   }
 
   const filled = f.monthly.filter((m) => m.trim() !== '')
@@ -150,8 +153,23 @@ export function toBuilding(f: BuildingForm): Building {
   }
 }
 
-/** Keep digits only and add thousands separators for display ("85000" → "85,000"). */
+/**
+ * Add thousands separators for display ("85000" → "85,000"). Keeps a decimal point
+ * and up to two decimals, so "118000.50" can never collapse into 11,800,050.
+ */
 export function groupDigits(v: string): string {
-  const d = v.replace(/\D/g, '').replace(/^0+(?=\d)/, '')
-  return d ? Number(d).toLocaleString('en-US') : ''
+  const [whole, ...fraction] = v.replace(/[^\d.]/g, '').split('.')
+  const d = whole.replace(/^0+(?=\d)/, '')
+  const grouped = d ? Number(d).toLocaleString('en-US') : ''
+  return fraction.length ? `${grouped || '0'}.${fraction.join('').slice(0, 2)}` : grouped
+}
+
+/**
+ * Read 12 monthly values pasted from a spreadsheet or CSV, or null if there aren't
+ * exactly 12. Commas in "47,000" are thousands separators; commas elsewhere separate.
+ */
+export function parsePastedMonths(text: string): string[] | null {
+  const values = text.match(/\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?/g)
+  if (values?.length !== 12) return null
+  return values.map((v) => groupDigits(String(Math.round(parseNum(v)))))
 }

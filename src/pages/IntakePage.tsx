@@ -8,7 +8,7 @@ import {
   type BuildingForm,
   type Objective,
 } from '../types'
-import { EMPTY_FORM, MONTHS, US_STATES, groupDigits, parseNum, validate, type FormErrors } from '../utils/building'
+import { EMPTY_FORM, MONTHS, US_STATES, groupDigits, parseNum, parsePastedMonths, validate, type FormErrors } from '../utils/building'
 import { Button, PageHeader, cx } from '../components/ui'
 import { StageNav } from '../components/Stages'
 import { money } from '../utils/format'
@@ -57,10 +57,10 @@ function summary(f: BuildingForm, i: number): string {
       return [f.heating, f.cooling].filter(Boolean).join(' / ')
     case 2:
       return f.elecCost
-        ? `${money(Number(f.elecCost.replace(/\D/g, '')))} electric${f.monthly.every((m) => m.trim()) ? ' · 12 months' : ''}`
+        ? `${money(parseNum(f.elecCost))} electric${f.monthly.every((m) => m.trim()) ? ' · 12 months' : ''}`
         : ''
     default:
-      return f.budget ? `${money(Number(f.budget.replace(/\D/g, '')))} · ${f.objective}` : ''
+      return f.budget ? `${money(parseNum(f.budget))} · ${f.objective}` : ''
   }
 }
 
@@ -167,7 +167,7 @@ export function IntakePage({
     <Affix prefix={opts.prefix} suffix={opts.suffix}>
       <input
         id={`f-${k}`}
-        inputMode="numeric"
+        inputMode="decimal"
         autoComplete="off"
         aria-invalid={Boolean(errors[k])}
         aria-describedby={errors[k] ? `f-${k}-err` : undefined}
@@ -376,7 +376,12 @@ export function IntakePage({
                 <Field label="Electricity cost" error={errors.elecCost} htmlFor="f-elecCost">
                   {num('elecCost', '118,000', { prefix: '$', suffix: 'per year' })}
                 </Field>
-                <Field label="Heating / natural gas cost" error={errors.heatCost} htmlFor="f-heatCost">
+                <Field
+                  label="Heating / natural gas cost"
+                  error={errors.heatCost}
+                  hint="Leave out anything already in your electricity cost."
+                  htmlFor="f-heatCost"
+                >
                   {num('heatCost', '54,000', { prefix: '$', suffix: 'per year' })}
                 </Field>
                 <Field label="Electricity usage" optional error={errors.kwh} hint="Improves data confidence" htmlFor="f-kwh">
@@ -392,7 +397,7 @@ export function IntakePage({
                         <span className="mb-1 block text-[11px] font-medium text-fg-2">{mo}</span>
                         <input
                           id={i === 0 ? 'f-monthly' : `f-monthly-${i}`}
-                          inputMode="numeric"
+                          inputMode="decimal"
                           autoComplete="off"
                           aria-invalid={Boolean(errors.monthly)}
                           className={cx(control, 'tnum h-10 px-2.5 text-[13px]')}
@@ -404,10 +409,10 @@ export function IntakePage({
                           }}
                           onPaste={(e) => {
                             // Paste a column or row of 12 values (e.g. from a spreadsheet) to fill every month.
-                            const vals = e.clipboardData.getData('text').split(/[\s,;\t]+/).map((v) => v.replace(/[^\d.]/g, '')).filter(Boolean)
-                            if (vals.length >= 12 && vals.slice(0, 12).every((v) => Number.isFinite(parseNum(v)))) {
+                            const months = parsePastedMonths(e.clipboardData.getData('text'))
+                            if (months) {
                               e.preventDefault()
-                              set('monthly', vals.slice(0, 12).map((v) => groupDigits(String(Math.round(parseNum(v))))))
+                              set('monthly', months)
                             }
                           }}
                         />
