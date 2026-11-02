@@ -21,7 +21,7 @@ const OBJECTIVE_HELP: Record<Objective, string> = {
 
 type NumericKey = 'sqft' | 'elecCost' | 'heatCost' | 'kwh' | 'budget'
 
-export const INTAKE_SECTIONS: { title: string; description: string; fields: (keyof BuildingForm)[] }[] = [
+const INTAKE_SECTIONS: { title: string; description: string; fields: (keyof BuildingForm)[] }[] = [
   {
     title: 'Property',
     description: 'Identifies the building and sets the baseline for size- and age-based estimates.',

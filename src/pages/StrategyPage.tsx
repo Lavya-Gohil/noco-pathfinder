@@ -17,7 +17,7 @@ import { Roadmap, type FuturePhase } from '../components/Roadmap'
 import { StageFooter, StageNav } from '../components/Stages'
 import { AnimatedNumber, Button, EstimateNote, PageHeader, Panel, Slider, Tag, cx } from '../components/ui'
 
-export const STRATEGY_STAGES = [
+const STRATEGY_STAGES = [
   { title: 'Choose a path' },
   { title: 'Roadmap' },
   { title: 'Why this order' },

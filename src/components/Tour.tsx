@@ -57,6 +57,9 @@ export function Tour({
   useEffect(() => {
     nextRef.current = onNext
   })
+  // Pending advance from complete(). Cancelled on close, or it would reopen the tour.
+  const advanceTimer = useRef(0)
+  useEffect(() => () => window.clearTimeout(advanceTimer.current), [])
 
   const chapterSteps = steps.filter((s) => s.chapter === step.chapter)
   const posInChapter = chapterSteps.indexOf(step) + 1
@@ -67,7 +70,7 @@ export function Tour({
     if (advanced.current) return
     advanced.current = true
     setDone(true)
-    window.setTimeout(() => nextRef.current(), delay)
+    advanceTimer.current = window.setTimeout(() => nextRef.current(), delay)
   }
 
   useEffect(() => {

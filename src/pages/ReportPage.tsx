@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { ArrowLeft, Printer } from 'lucide-react'
 import { GAS_PRICE_PER_THERM, type Baseline } from '../engine/baseline'
 import type { DataConfidence } from '../engine/confidence'
@@ -46,7 +46,7 @@ export function ReportPage({
 }) {
   const b = base.building
   const plan = strategy.plan
-  const today = new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date())
+  const [today] = useState(() => new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date()))
   const why = plan ? whyThisOrder(plan, scenario.budget) : []
   const sequence = plan ? plan.order.map((m) => MEASURES[m].name).join(' → ') : ''
   const sequencingEffect = plan ? plan.steps.flatMap((s) => s.effects).reduce((a, e) => a + Math.max(0, e.capitalImpact), 0) : 0

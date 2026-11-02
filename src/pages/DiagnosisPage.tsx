@@ -9,7 +9,7 @@ import { ChartTooltip } from '../components/ChartTooltip'
 import { StageFooter, StageNav } from '../components/Stages'
 import { money, moneyCents, moneyShort, num, pct } from '../utils/format'
 
-export const DIAGNOSIS_STAGES = [{ title: 'Energy profile' }, { title: 'Data confidence' }, { title: 'Signals' }]
+const DIAGNOSIS_STAGES = [{ title: 'Energy profile' }, { title: 'Data confidence' }, { title: 'Signals' }]
 
 export function DiagnosisPage({
   base,

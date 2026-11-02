@@ -2,6 +2,23 @@ import { useEffect, useRef, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 
+/** Wrap Tab and Shift+Tab around the elements inside `panel`. */
+function keepFocusInside(e: KeyboardEvent, panel: HTMLElement | null) {
+  if (!panel) return
+  const items = panel.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), input, select, textarea, [tabindex="0"]')
+  if (!items.length) return
+  const first = items[0]
+  const last = items[items.length - 1]
+  const active = document.activeElement
+  if (!panel.contains(active) || (e.shiftKey && active === first)) {
+    e.preventDefault()
+    ;(e.shiftKey ? last : first).focus()
+  } else if (!e.shiftKey && active === last) {
+    e.preventDefault()
+    first.focus()
+  }
+}
+
 /** Right-side drawer (full width on phones). Closes on Esc or backdrop click. */
 export function Drawer({
   open,
@@ -17,6 +34,7 @@ export function Drawer({
   children: ReactNode
 }) {
   const closeRef = useRef<HTMLButtonElement>(null)
+  const panelRef = useRef<HTMLDivElement>(null)
   // Keep the latest onClose without re-running the open/close effect on every render.
   const onCloseRef = useRef(onClose)
   useEffect(() => {
@@ -26,6 +44,7 @@ export function Drawer({
   useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Tab') return keepFocusInside(e, panelRef.current)
       if (e.key !== 'Escape') return
       e.preventDefault() // claim Esc so the guided tour doesn't also close
       onCloseRef.current()
@@ -45,7 +64,7 @@ export function Drawer({
   if (!open) return null
   // Portal to <body> so transformed ancestors can't trap position: fixed.
   return createPortal(
-    <div className="fixed inset-0 z-50 print:hidden" role="dialog" aria-modal="true" aria-label={title}>
+    <div ref={panelRef} className="fixed inset-0 z-50 print:hidden" role="dialog" aria-modal="true" aria-label={title}>
       <div className="fade-in absolute inset-0 bg-[rgba(13,17,23,0.45)]" onClick={onClose} />
       <div className="drawer-in absolute inset-y-0 right-0 flex w-full max-w-[480px] flex-col border-l border-[var(--edge)] bg-[image:var(--raise-bg)] shadow-[var(--shadow-overlay)]">
         <div className="flex items-start justify-between gap-4 border-b border-line px-6 py-4">

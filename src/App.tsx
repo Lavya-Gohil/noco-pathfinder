@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
 import { ArrowRight, Compass } from 'lucide-react'
 import { Header, type StepId } from './components/Header'
 import { Tour } from './components/Tour'
@@ -8,15 +8,17 @@ import { buildBaseline } from './engine/baseline'
 import { dataConfidence } from './engine/confidence'
 import { opportunityLabel, signals } from './engine/explanations'
 import { optimize, recommendedPath } from './engine/optimizer'
-import { DiagnosisPage } from './pages/DiagnosisPage'
 import { IntakePage } from './pages/IntakePage'
 import { HomePage } from './pages/HomePage'
-import { PrivacyPage } from './pages/PrivacyPage'
-import { ReportPage } from './pages/ReportPage'
-import { StrategyPage } from './pages/StrategyPage'
 import { CHAPTER_START, TOUR_STEPS, type TourApi, type TourState } from './tour/steps'
 import type { Building, BuildingForm, PathId, Scenario } from './types'
 import { DEMO_FORM, EMPTY_FORM, sameForm, toBuilding, validate } from './utils/building'
+
+// Loaded on demand so the homepage and intake form don't download the chart library.
+const DiagnosisPage = lazy(() => import('./pages/DiagnosisPage').then((m) => ({ default: m.DiagnosisPage })))
+const StrategyPage = lazy(() => import('./pages/StrategyPage').then((m) => ({ default: m.StrategyPage })))
+const ReportPage = lazy(() => import('./pages/ReportPage').then((m) => ({ default: m.ReportPage })))
+const PrivacyPage = lazy(() => import('./pages/PrivacyPage').then((m) => ({ default: m.PrivacyPage })))
 
 const ORDER: StepId[] = ['intake', 'diagnosis', 'strategy', 'report']
 const DEFAULT_INCENTIVE = 0.15
@@ -193,6 +195,7 @@ export default function App() {
             </Button>
           </div>
         )}
+        <Suspense fallback={null}>
         {showPrivacy ? (
           <PrivacyPage />
         ) : (
@@ -250,6 +253,7 @@ export default function App() {
             )}
           </>
         )}
+        </Suspense>
       </main>
       <footer className="mx-auto flex max-w-[1320px] flex-col gap-2 px-4 pb-8 text-[12px] text-fg-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8 print:hidden">
         <span>

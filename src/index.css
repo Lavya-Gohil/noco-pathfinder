@@ -44,7 +44,7 @@
   --surface-3: #f1f5f7;
   --fg: #10233a;
   --fg-2: #4f6175;
-  --fg-3: #8494a5;
+  --fg-3: #566779;
   --line: #cfdae0;
   --line-strong: #bac8d0;
   --brand: #0e6b6b;
@@ -81,7 +81,7 @@
   --surface-3: #232d35;
   --fg: #eef2f4;
   --fg-2: #a6b3bd;
-  --fg-3: #788692;
+  --fg-3: #8c99a4;
   --line: #2a353e;
   --line-strong: #37444e;
   --brand: #1f8f8a;
@@ -118,7 +118,7 @@
   --surface-3: #ffffff;
   --fg: #111827;
   --fg-2: #5b6576;
-  --fg-3: #98a2b3;
+  --fg-3: #667085;
   --line: #e4e7ec;
   --line-strong: #d0d5dd;
   --brand: #0e6b6b;
@@ -383,7 +383,7 @@ input[type='range'].slider:focus-visible::-moz-range-thumb {
     --surface-3: #ffffff;
     --fg: #111827;
     --fg-2: #5b6576;
-    --fg-3: #98a2b3;
+    --fg-3: #667085;
     --line: #e4e7ec;
     --line-strong: #d0d5dd;
     --brand: #0e6b6b;
