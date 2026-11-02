@@ -5,6 +5,7 @@ Everything prepared for the four-minute presentation of NOCO Asset IQ to NOCO.
 | File | What it is |
 |---|---|
 | [`NOCO-Asset-IQ.pptx`](NOCO-Asset-IQ.pptx) | The deck: 10 slides with Morph transitions and a timed script in the speaker notes, plus a hidden backup slide (11) |
+| [`NOCO-Asset-IQ-Presentation-Script.docx`](NOCO-Asset-IQ-Presentation-Script.docx) | What to say and do on each slide, with times, speakers and what to do if something goes wrong |
 | [`NOCO-Asset-IQ-Master-Briefing.pdf`](NOCO-Asset-IQ-Master-Briefing.pdf) | The full briefing: the product, the numbers, the demo script, hard questions and the backup plan |
 | [`report-sample.pdf`](report-sample.pdf) | The executive report the app produces for the sample building |
 | [`screenshots/`](screenshots/) | The key screens in demo order |
