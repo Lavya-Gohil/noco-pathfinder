@@ -1,7 +1,7 @@
 import { useMemo, useState, type ReactNode } from 'react'
 import { SlidersHorizontal } from 'lucide-react'
 import type { Baseline } from '../engine/baseline'
-import { whyThisOrder } from '../engine/explanations'
+import { valueNote, whyThisOrder } from '../engine/explanations'
 import { ANALYSIS_YEARS, DISCOUNT_RATE, type PlanResult, type StepResult } from '../engine/interactions'
 import { MEASURES, MEASURE_IDS } from '../engine/measures'
 import type { OptimizerResult, Strategy } from '../engine/optimizer'
@@ -390,6 +390,7 @@ export function StrategyPage({
                     <SummaryRow label="Energy spend reduction" value={pct(plan.savingsShare)} />
                     <SummaryRow label="Budget used" value={`${pct(plan.net / Math.max(1, scenario.budget))} of ${money(scenario.budget)}`} />
                   </dl>
+                  {valueNote(plan, base) && <p className="mt-5 text-[12px] leading-relaxed text-fg-2">{valueNote(plan, base)}</p>}
                   {fitsBecauseSequenced && (
                     <p className="neu-inset mt-5 rounded-xl px-4 py-3 text-[12px] leading-relaxed text-fg-2">
                       <span className="font-semibold text-fg">Fits budget because of sequencing.</span> The same measures in a

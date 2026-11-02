@@ -14,6 +14,8 @@ npm run deploy     # build and publish to GitHub Pages (gh-pages branch)
 
 Live: https://lavya-gohil.github.io/noco-pathfinder/
 
+Merging to `main` does not update the live site. Publish with `npm run deploy`, or run the **Deploy to GitHub Pages** workflow from the Actions tab.
+
 ## Calculation engine (`src/engine/`)
 
 | File | Role |

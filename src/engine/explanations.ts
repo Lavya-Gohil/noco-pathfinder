@@ -5,8 +5,8 @@
 import type { Building, BuildingType, MeasureId } from '../types'
 import { money, num, pct } from '../utils/format'
 import type { Baseline } from './baseline'
-import { ANALYSIS_YEARS, type PlanResult, type StepResult } from './interactions'
-import { MEASURES } from './measures'
+import { ANALYSIS_YEARS, discount, type PlanResult, type StepResult } from './interactions'
+import { HVAC_SERVICE_LIFE, MEASURES, hvacIsDue } from './measures'
 
 export type SignalKind = 'hvac' | 'envelope' | 'lighting' | 'solar' | 'cost'
 
@@ -119,6 +119,16 @@ export function phaseReason(plan: PlanResult, step: StepResult, base: Baseline):
       return `A ${num(step.solarKw)} kW array sized to the demand left after the other upgrades, offsetting ~${pct(step.kwhGenerated / Math.max(1, base.elecKwh))} of today's electricity use within roof limits.`
 
   }
+}
+
+/**
+ * Context for a plan's value when it carries HVAC that needs replacing anyway. Without
+ * this, a negative value reads as "this plan loses money", when most of that cost is coming regardless.
+ */
+export function valueNote(plan: PlanResult, base: Baseline): string | null {
+  const hvac = plan.steps.find((s) => s.id === 'hvac')
+  if (!hvac || !hvacIsDue(base)) return null
+  return `This value is charged ${money(hvac.net * discount(hvac.startYear))} in today's dollars for replacing the HVAC. That equipment is past a ${HVAC_SERVICE_LIFE}-year service life, so most of this cost comes due with or without the plan.`
 }
 
 /** Next steps for the report, leaving out data the owner has already provided. */

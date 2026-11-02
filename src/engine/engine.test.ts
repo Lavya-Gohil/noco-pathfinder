@@ -2,8 +2,9 @@ import { describe, expect, it } from 'vitest'
 import { DEMO_FORM, toBuilding } from '../utils/building'
 import { CURRENT_YEAR, buildBaseline, climateFor, measuredCoolingShare } from './baseline'
 import { dataConfidence } from './confidence'
-import { nextSteps } from './explanations'
-import { bestOrder, cashPosition, permutations, simulate, type PlanResult } from './interactions'
+import { money } from '../utils/format'
+import { nextSteps, valueNote } from './explanations'
+import { bestOrder, cashPosition, discount, permutations, simulate, type PlanResult } from './interactions'
 import { MEASURE_IDS, SOLAR_BILL_VALUE, envelopeLoadReduction, measureConfidence } from './measures'
 import { BALANCED_MAX_STEP_PAYBACK, optimize, recommendedPath } from './optimizer'
 import type { MeasureId } from '../types'
@@ -282,6 +283,21 @@ describe('choosing the order', () => {
     expect(cashPosition(plan, 0)).toBeCloseTo(-a.net, 6)
     expect(cashPosition(plan, 1)).toBeCloseTo(-a.net + a.annualSavings - b.net, 6)
     expect(cashPosition(plan, 3)).toBeCloseTo(-a.net - b.net + a.annualSavings * 3 + b.annualSavings * 2, 6)
+  })
+})
+
+describe('value note', () => {
+  const plan = (b = base) => simulate(['envelope', 'hvac'], b, scenario)
+
+  it('explains the cost of HVAC that is due anyway', () => {
+    const hvac = plan().steps.find((s) => s.id === 'hvac')!
+    expect(valueNote(plan(), base)).toContain(money(hvac.net * discount(1)))
+  })
+
+  it('stays out of the way otherwise', () => {
+    const midLife = buildBaseline({ ...demo, hvacYear: CURRENT_YEAR - 14 }, 0)
+    expect(valueNote(plan(midLife), midLife)).toBeNull()
+    expect(valueNote(simulate(['led'], base, scenario), base)).toBeNull()
   })
 })
 

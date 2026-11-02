@@ -2,7 +2,7 @@ import { useState, type ReactNode } from 'react'
 import { ArrowLeft, Printer } from 'lucide-react'
 import { GAS_PRICE_PER_THERM, type Baseline } from '../engine/baseline'
 import type { DataConfidence } from '../engine/confidence'
-import { nextSteps, phaseReason, whyThisOrder } from '../engine/explanations'
+import { nextSteps, phaseReason, valueNote, whyThisOrder } from '../engine/explanations'
 import { ANALYSIS_YEARS, DISCOUNT_RATE } from '../engine/interactions'
 import { MEASURES } from '../engine/measures'
 import type { Strategy } from '../engine/optimizer'
@@ -189,6 +189,7 @@ export function ReportPage({
                   <Row label="Budget" value={money(scenario.budget)} />
                 </tbody>
               </table>
+              {valueNote(plan, base) && <p className="mt-2 text-[12px] leading-relaxed text-fg-2">{valueNote(plan, base)}</p>}
               <p className="mt-2 text-[11px] text-fg-2">
                 Potential incentive — eligibility requires verification. Assumes {pct(scenario.incentiveRate)} incentive level and{' '}
                 {signedPct(scenario.elecPriceChange)} electricity price change.

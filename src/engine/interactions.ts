@@ -363,9 +363,11 @@ function finalDemandFor(order: MeasureId[], base: Baseline): number {
 
 const RANK: Record<ConfidenceLevel, number> = { Low: 0, Medium: 1, High: 2 }
 
+/** What a dollar in `year` is worth today. */
+export const discount = (year: number) => (1 + DISCOUNT_RATE) ** -year
+
 /** Discounted value of the phases over the analysis period, with each starting in its own year. */
 function planValue(steps: StepResult[]): number {
-  const discount = (year: number) => (1 + DISCOUNT_RATE) ** -year
   return steps.reduce((total, st) => {
     let value = -st.net * discount(st.startYear)
     for (let y = st.startYear + 1; y <= ANALYSIS_YEARS; y++) value += st.annualSavings * discount(y)

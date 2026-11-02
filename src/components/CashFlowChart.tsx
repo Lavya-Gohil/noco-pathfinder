@@ -3,8 +3,12 @@ import { cashPosition, ANALYSIS_YEARS as YEARS } from '../engine/interactions'
 import type { Strategy } from '../engine/optimizer'
 import { PATH_DASH, useChartPalette } from '../theme'
 import type { PathId } from '../types'
+import { labelOffsets } from '../utils/chart'
 import { money, moneyShort } from '../utils/format'
 import { ChartTooltip } from './ChartTooltip'
+
+/** Approximate height of the plotted area, used to keep line labels apart. */
+const PLOT_HEIGHT = 200
 
 /** Cumulative net cash position, with each phase paid for and saving from its own year (no escalation). */
 export function CashFlowChart({ strategies, selected }: { strategies: Strategy[]; selected: PathId }) {
@@ -19,6 +23,10 @@ export function CashFlowChart({ strategies, selected }: { strategies: Strategy[]
     return row
   })
   const names = Object.fromEntries(shown.map((s) => [s.id, s.name]))
+  const values = data.flatMap((row) => shown.map((s) => row[s.id]))
+  const range = Math.max(1, Math.max(...values, 0) - Math.min(...values, 0))
+  const finals = Object.fromEntries(shown.map((s) => [s.id, data[YEARS][s.id]]))
+  const offsets = labelOffsets(finals, PLOT_HEIGHT / range)
   return (
     <>
       <div
@@ -70,7 +78,7 @@ export function CashFlowChart({ strategies, selected }: { strategies: Strategy[]
                   dataKey={s.id}
                   content={({ x, y, index }) =>
                     index === YEARS ? (
-                      <text x={Number(x) + 8} y={Number(y)} dy={4} fill={c.label} fontSize={12}>
+                      <text x={Number(x) + 8} y={Number(y)} dy={4 + offsets[s.id]} fill={c.label} fontSize={12}>
                         {s.name}
                       </text>
                     ) : null
