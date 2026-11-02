@@ -27,6 +27,12 @@ Merging to `main` does not update the live site. Publish with `npm run deploy`, 
 | `explanations.ts` | Diagnosis signals, phase reasons, "Why this order" narrative |
 | `confidence.ts` | Data-confidence score and most valuable next data point |
 
+## License
+
+Proprietary, all rights reserved. See [LICENSE](LICENSE). Open-source dependencies keep their own licenses.
+
+## Figures
+
 All figures are illustrative pre-audit estimates. [docs/assumptions.md](docs/assumptions.md) lists where each number comes from and how far to trust it.
 
 ```bash

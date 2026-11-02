@@ -1,0 +1,28 @@
+Copyright (c) 2026 Lavya Gohil. All rights reserved.
+
+NOCO Asset IQ, including its source code, documentation, branding and any
+software derived from it (the "Software"), is proprietary. All rights not
+expressly granted here are reserved by the copyright holder.
+
+Permitted without further permission:
+
+  - Viewing this repository and forking it on GitHub, to the extent GitHub's
+    Terms of Service require for public repositories.
+  - Using the hosted web application at
+    https://lavya-gohil.github.io/noco-pathfinder/ for your own assessments.
+
+Not permitted without prior written permission from the copyright holder:
+
+  - Copying, modifying, merging or creating derivative works of the Software.
+  - Publishing, distributing, sublicensing, hosting or selling the Software or
+    any part of it.
+
+Third-party components keep their own licenses, which are listed in
+third-party-licenses.md in the built application.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. ITS RESULTS ARE ILLUSTRATIVE
+PRE-AUDIT ESTIMATES AND ARE NOT ENGINEERING, FINANCIAL OR INVESTMENT ADVICE. IN
+NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY ARISING FROM THE SOFTWARE OR ITS USE.
