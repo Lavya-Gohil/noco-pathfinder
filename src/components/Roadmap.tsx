@@ -29,7 +29,7 @@ function Marker({ n, muted, last }: { n: number; muted?: boolean; last?: boolean
   )
 }
 
-export function Roadmap({ plan, base, future }: { plan: PlanResult; base: Baseline; future: FuturePhase[] }) {
+export function Roadmap({ plan, base, future, budget }: { plan: PlanResult; base: Baseline; future: FuturePhase[]; budget: number }) {
   const total = plan.steps.length + future.length
   return (
     <ol>
@@ -63,7 +63,9 @@ export function Roadmap({ plan, base, future }: { plan: PlanResult; base: Baseli
           <Marker n={plan.steps.length + i + 1} muted last={plan.steps.length + i === total - 1} />
           <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 pb-5 pt-1">
             <span className="text-[13px] text-fg-2">{MEASURES[f.id].name}</span>
-            <span className="tnum text-[12px] text-fg-3">Outside budget · +{money(f.extraBudget)} to add</span>
+            <span className="tnum text-[12px] text-fg-3">
+              {plan.net + f.extraBudget <= budget ? 'Not in this path' : 'Outside budget'} · +{money(f.extraBudget)} to add
+            </span>
           </div>
         </li>
       ))}

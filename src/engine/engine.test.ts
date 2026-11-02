@@ -2,9 +2,10 @@ import { describe, expect, it } from 'vitest'
 import { DEMO_FORM, toBuilding } from '../utils/building'
 import { buildBaseline, climateFor, measuredCoolingShare } from './baseline'
 import { dataConfidence } from './confidence'
-import { simulate } from './interactions'
+import { nextSteps } from './explanations'
+import { simulate, type PlanResult } from './interactions'
 import { MEASURE_IDS } from './measures'
-import { optimize, recommendedPath } from './optimizer'
+import { BALANCED_MAX_STEP_PAYBACK, optimize, recommendedPath } from './optimizer'
 import type { MeasureId } from '../types'
 
 const demo = toBuilding(DEMO_FORM)
@@ -102,11 +103,42 @@ describe('optimize', () => {
   })
 })
 
+describe('Balanced path', () => {
+  const stepPaybacks = (p: PlanResult) => p.steps.map((s) => s.net / s.annualSavings)
+
+  it('keeps every phase within the payback limit when it can', () => {
+    for (const budget of [100_000, 250_000, 400_000, 1_000_000]) {
+      const s = optimize(base, { ...scenario, budget }).strategies.find((x) => x.id === 'balanced')!
+      for (const pb of stepPaybacks(s.plan!)) expect(pb).toBeLessThanOrEqual(BALANCED_MAX_STEP_PAYBACK)
+      expect(s.note).toBeUndefined()
+    }
+  })
+
+  it('says so when no plan can meet the limit', () => {
+    const lowBills = buildBaseline({ ...demo, elecCost: 20_000, heatCost: 5_000, kwh: null, monthlyKwh: null }, 0)
+    const s = optimize(lowBills, { ...scenario, budget: 1_000_000 }).strategies.find((x) => x.id === 'balanced')!
+    expect(s.plan).not.toBeNull()
+    expect(s.note).toContain('closest available')
+  })
+})
+
+describe('next steps', () => {
+  it('does not ask for data the owner has already provided', () => {
+    expect(nextSteps(demo).join(' ')).not.toContain('12 months')
+    expect(nextSteps({ ...demo, monthlyKwh: null }).join(' ')).toContain('12 months')
+  })
+})
+
 describe('data confidence', () => {
   it('scores the demo and always names a next data point', () => {
     const c = dataConfidence(demo)
     expect(c.score).toBe(90)
     expect(c.next).toBeDefined()
+  })
+
+  it('names the data that is actually missing', () => {
+    const c = dataConfidence({ ...demo, monthlyKwh: null, kwh: 720000, heating: 'Not Sure', cooling: 'Not Sure' })
+    expect([c.next, ...c.others].find((n) => n.field === 'hvac')?.label).toBe('Heating and cooling system types')
   })
 
   it('ranks monthly data first when nothing optional is provided', () => {

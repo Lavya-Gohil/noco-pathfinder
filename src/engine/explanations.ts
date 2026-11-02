@@ -2,7 +2,7 @@
 // derived from the plan actually selected, so the narrative changes when the
 // budget, prices or incentives change.
 
-import type { BuildingType, MeasureId } from '../types'
+import type { Building, BuildingType, MeasureId } from '../types'
 import { money, num, pct } from '../utils/format'
 import type { Baseline } from './baseline'
 import type { PlanResult, StepResult } from './interactions'
@@ -121,6 +121,17 @@ export function phaseReason(plan: PlanResult, step: StepResult, base: Baseline):
         : `Sized to offset ~${pct(step.kwhGenerated / Math.max(1, base.elecKwh))} of annual electricity use within roof limits.`
     }
   }
+}
+
+/** Next steps for the report, leaving out data the owner has already provided. */
+export function nextSteps(b: Building): string[] {
+  return [
+    ...(b.monthlyKwh ? [] : ['Obtain 12 months of utility consumption.']),
+    'Conduct an on-site energy assessment.',
+    b.hvacYear ? 'Verify equipment specifications.' : 'Verify equipment age and specifications.',
+    'Confirm available incentives.',
+    'Develop contractor-ready project scopes.',
+  ]
 }
 
 export interface WhyPoint {

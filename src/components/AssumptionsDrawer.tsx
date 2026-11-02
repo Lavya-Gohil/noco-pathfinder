@@ -80,7 +80,7 @@ export function AssumptionsDrawer({
             <>Controls with new HVAC: HVAC-related control savings × {CONTROLS_HVAC_OVERLAP} for overlap.</>,
             <>Solar sized to {pct(SOLAR_TARGET_SHARE)} of remaining demand (cap {pct(SOLAR_MAX_SHARE)}), within roof limits.</>,
             <>Combined savings capped at {pct(MAX_SAVINGS_SHARE)} of annual utility spend.</>,
-            <>Balanced path requires every phase to pay back within {BALANCED_MAX_STEP_PAYBACK} years.</>,
+            <>Balanced path keeps every phase within a {BALANCED_MAX_STEP_PAYBACK}-year payback whenever the budget allows such a plan, and says so when it doesn't.</>,
           ]}
         />
       </DrawerSection>

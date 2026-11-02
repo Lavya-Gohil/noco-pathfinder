@@ -16,7 +16,6 @@ import { money } from '../utils/format'
 const OBJECTIVE_HELP: Record<Objective, string> = {
   'Fastest Payback': 'Prioritize short payback periods',
   Balanced: 'Weigh savings, payback and sequencing',
-  'Maximum Savings': 'Prioritize annual savings',
   'Deep Retrofit': 'Prioritize energy and carbon reduction',
 }
 
@@ -449,7 +448,7 @@ export function IntakePage({
                 </Field>
                 <fieldset>
                   <legend className="mb-2 text-[13px] font-medium text-fg">Primary objective</legend>
-                  <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="grid gap-3 sm:grid-cols-3">
                     {OBJECTIVES.map((o) => {
                       const on = form.objective === o
                       return (

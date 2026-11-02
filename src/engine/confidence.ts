@@ -65,8 +65,11 @@ export function dataConfidence(b: Building): DataConfidence {
       field: 'monthly',
     },
     {
-      label: 'HVAC equipment age',
-      why: 'The install year of the heating and cooling equipment sets the real efficiency gap, the biggest driver of HVAC savings.',
+      label: b.hvacYear === null ? 'HVAC equipment age' : 'Heating and cooling system types',
+      why:
+        b.hvacYear === null
+          ? 'The install year of the heating and cooling equipment sets the real efficiency gap, the biggest driver of HVAC savings.'
+          : 'The system types set the efficiency gap and the cost of replacing them.',
       gain: (b.hvacYear === null ? 6 : 0) + missingHvac,
       field: 'hvac',
     },

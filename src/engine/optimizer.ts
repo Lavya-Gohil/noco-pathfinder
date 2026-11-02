@@ -16,6 +16,8 @@ export interface Strategy {
   recommended: boolean
   /** Set when another path landed on the identical combination. */
   sameAs: PathId | null
+  /** Caveat to show with the plan, when it couldn't meet the path's own rule. */
+  note?: string
   score: number
 }
 
@@ -75,8 +77,7 @@ export function balancedScore(p: PlanResult, maxSavings: number, budget: number)
   const paybackScore = clamp(1 - p.payback / 12, 0, 1)
   const interactionScore = interactionCount(p) / 2
   const utilisation = clamp(p.net / Math.max(1, budget), 0, 1)
-  const stepPenalty = worstStepPayback(p) > BALANCED_MAX_STEP_PAYBACK ? 0.5 : 0
-  return 0.4 * savingsScore + 0.35 * paybackScore + 0.15 * interactionScore + 0.1 * utilisation - stepPenalty
+  return 0.4 * savingsScore + 0.35 * paybackScore + 0.15 * interactionScore + 0.1 * utilisation
 }
 
 export function optimize(base: Baseline, scenario: Scenario): OptimizerResult {
@@ -98,8 +99,10 @@ export function optimize(base: Baseline, scenario: Scenario): OptimizerResult {
   // BALANCED — weighted score. When a plan exists that saves more than Quick
   // Wins, Balanced offers that instead so the owner sees a real choice.
   const maxSavings = Math.max(0, ...affordable.map((p) => p.annualSavings))
-  const stepUp = quick ? affordable.filter((p) => p !== quick && p.annualSavings > quick.annualSavings) : []
-  const balancedPool = stepUp.length ? stepUp : affordable
+  // Only plans where every phase pays back within the limit qualify, unless none can.
+  const qualifying = affordable.filter((p) => worstStepPayback(p) <= BALANCED_MAX_STEP_PAYBACK)
+  const stepUp = quick ? qualifying.filter((p) => p !== quick && p.annualSavings > quick.annualSavings) : []
+  const balancedPool = stepUp.length ? stepUp : qualifying.length ? qualifying : affordable
   let balanced: PlanResult | null = null
   let balancedBest = -Infinity
   for (const p of balancedPool) {
@@ -139,6 +142,10 @@ export function optimize(base: Baseline, scenario: Scenario): OptimizerResult {
       recommended: id === rec,
       sameAs: earlier ? earlier[0] : null,
       score,
+      note:
+        id === 'balanced' && plan && !qualifying.length
+          ? `No plan at this budget keeps every phase within a ${BALANCED_MAX_STEP_PAYBACK}-year payback, so this is the closest available.`
+          : undefined,
     }
   })
 

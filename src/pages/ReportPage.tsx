@@ -2,21 +2,13 @@ import type { ReactNode } from 'react'
 import { ArrowLeft, Printer } from 'lucide-react'
 import { GAS_PRICE_PER_THERM, type Baseline } from '../engine/baseline'
 import type { DataConfidence } from '../engine/confidence'
-import { phaseReason, whyThisOrder } from '../engine/explanations'
+import { nextSteps, phaseReason, whyThisOrder } from '../engine/explanations'
 import { MEASURES } from '../engine/measures'
 import type { Strategy } from '../engine/optimizer'
 import type { Scenario } from '../types'
 import { money, num, pct, signedPct, tons, years } from '../utils/format'
 import { Logo, MAKER, PRODUCT, TAGLINE } from '../components/Brand'
 import { Button } from '../components/ui'
-
-const NEXT_STEPS = [
-  'Obtain 12 months of utility consumption.',
-  'Conduct an on-site energy assessment.',
-  'Verify equipment age and specifications.',
-  'Confirm available incentives.',
-  'Develop contractor-ready project scopes.',
-]
 
 function Section({ n, title, children }: { n: number; title: string; children: ReactNode }) {
   return (
@@ -108,8 +100,17 @@ export function ReportPage({
             {plan ? (
               <div className="space-y-2.5 text-[13px] leading-relaxed text-fg">
                 <p>
-                  Based on the information provided, {PRODUCT} recommends the{' '}
-                  <strong className="font-semibold">{strategy.name}</strong> path: {sequence}. The program requires an estimated{' '}
+                  {strategy.recommended ? (
+                    <>
+                      Based on the information provided and the stated objective, {PRODUCT} recommends the{' '}
+                      <strong className="font-semibold">{strategy.name}</strong> path:
+                    </>
+                  ) : (
+                    <>
+                      This report covers the <strong className="font-semibold">{strategy.name}</strong> path, selected for review:
+                    </>
+                  )}{' '}
+                  {sequence}. The program requires an estimated{' '}
                   <span className="tnum font-medium">{money(plan.net)}</span> net investment after potential incentives and is
                   expected to save about <span className="tnum font-medium">{money(plan.annualSavings)}</span> per year — a simple
                   payback of <span className="tnum">{years(plan.payback)}</span> and a {pct(plan.savingsShare)} reduction in annual
@@ -222,7 +223,7 @@ export function ReportPage({
 
           <Section n={plan ? 6 : 4} title="Recommended next steps">
             <ol className="space-y-1.5 text-[13px] text-fg">
-              {NEXT_STEPS.map((s, i) => (
+              {nextSteps(b).map((s, i) => (
                 <li key={s} className="flex gap-3">
                   <span className="tnum w-4 shrink-0 text-fg-3">{i + 1}.</span>
                   {s}

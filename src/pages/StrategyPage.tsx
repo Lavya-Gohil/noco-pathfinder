@@ -93,6 +93,7 @@ function StrategyCard({
             </svg>
             {sequenceText(p)}
           </div>
+          {s.note && <p className="mt-2 text-[12px] text-warn-text">{s.note}</p>}
           {same && (
             <p className="mt-2 text-[12px] text-fg-3">
               Same measures as {same.name} at this budget.
@@ -375,7 +376,7 @@ export function StrategyPage({
                   description="Phases in the order Asset IQ recommends"
                   actions={<EstimateNote className="hidden sm:inline-flex">Pre-audit estimate</EstimateNote>}
                 >
-                  <Roadmap plan={plan} base={base} future={future.slice(0, 2)} />
+                  <Roadmap plan={plan} base={base} future={future.slice(0, 2)} budget={scenario.budget} />
                 </Panel>
                 <Panel tour="strategy-summary" title="Strategy summary" description={strategy.name}>
                   <dl className="-my-2.5 divide-y divide-line/70">
