@@ -47,6 +47,11 @@ describe('ReportPage', () => {
     expect(screen.getByText(/recommends the/)).toBeInTheDocument()
   })
 
+  it('tells the reader what the plan does about aging HVAC', () => {
+    report(true)
+    expect(screen.getByText(/Leaves the HVAC, about \d+ years old, in place/)).toBeInTheDocument()
+  })
+
   it('does not claim to recommend a path the user picked themselves', () => {
     report(false)
     expect(screen.queryByText(/recommends the/)).toBeNull()

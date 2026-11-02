@@ -176,7 +176,7 @@ export const HVAC_MIN_AGE = 10
 export const HVAC_SERVICE_LIFE = 20
 
 /** Years since the HVAC equipment was installed; building age stands in if unknown. */
-function hvacAge(base: Baseline): number | null {
+export function hvacAge(base: Baseline): number | null {
   const year = base.building.hvacYear ?? base.building.yearBuilt
   return year === null ? null : CURRENT_YEAR - year
 }

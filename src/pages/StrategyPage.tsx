@@ -1,7 +1,7 @@
 import { useMemo, useState, type ReactNode } from 'react'
 import { SlidersHorizontal } from 'lucide-react'
 import type { Baseline } from '../engine/baseline'
-import { valueNote, whyThisOrder } from '../engine/explanations'
+import { hvacTradeoff, valueNote, whyThisOrder } from '../engine/explanations'
 import { ANALYSIS_YEARS, DISCOUNT_RATE, type PlanResult, type StepResult } from '../engine/interactions'
 import { MEASURES, MEASURE_IDS } from '../engine/measures'
 import type { OptimizerResult, Strategy } from '../engine/optimizer'
@@ -45,6 +45,7 @@ function StrategyCard({
   cheapest,
   unlock,
   strategies,
+  base,
 }: {
   s: Strategy
   selected: boolean
@@ -52,6 +53,7 @@ function StrategyCard({
   cheapest: PlanResult | null
   unlock: PlanResult | null
   strategies: Strategy[]
+  base: Baseline
 }) {
   const c = useChartPalette()
   const p = s.plan
@@ -93,6 +95,7 @@ function StrategyCard({
             </svg>
             {sequenceText(p)}
           </div>
+          {hvacTradeoff(p, base) && <p className="mt-2 text-[12px] text-fg-2">{hvacTradeoff(p, base)}</p>}
           {s.note && <p className="mt-2 text-[12px] text-warn-text">{s.note}</p>}
           {same && (
             <p className="mt-2 text-[12px] text-fg-3">
@@ -356,6 +359,7 @@ export function StrategyPage({
                   key={s.id}
                   s={s}
                   strategies={result.strategies}
+                  base={base}
                   selected={selected === s.id}
                   onSelect={() => setSelected(s.id)}
                   cheapest={result.cheapestEntry}

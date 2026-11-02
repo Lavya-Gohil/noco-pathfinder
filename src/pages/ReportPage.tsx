@@ -2,7 +2,7 @@ import { useState, type ReactNode } from 'react'
 import { ArrowLeft, Printer } from 'lucide-react'
 import { GAS_PRICE_PER_THERM, type Baseline } from '../engine/baseline'
 import type { DataConfidence } from '../engine/confidence'
-import { nextSteps, phaseReason, valueNote, whyThisOrder } from '../engine/explanations'
+import { hvacTradeoff, nextSteps, phaseReason, valueNote, whyThisOrder } from '../engine/explanations'
 import { ANALYSIS_YEARS, DISCOUNT_RATE } from '../engine/interactions'
 import { MEASURES } from '../engine/measures'
 import type { Strategy } from '../engine/optimizer'
@@ -117,6 +117,7 @@ export function ReportPage({
                   payback of <span className="tnum">{years(plan.payback)}</span> and a {pct(plan.savingsShare)} reduction in annual
                   energy spend.
                 </p>
+                {hvacTradeoff(plan, base) && <p>{hvacTradeoff(plan, base)}</p>}
                 {sequencingEffect > 1 && (
                   <p>
                     Sequencing load reductions ahead of equipment decisions lowers the estimated net project cost by about{' '}

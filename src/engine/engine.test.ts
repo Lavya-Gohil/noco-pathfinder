@@ -3,7 +3,7 @@ import { DEMO_FORM, toBuilding } from '../utils/building'
 import { CURRENT_YEAR, buildBaseline, climateFor, measuredCoolingShare } from './baseline'
 import { dataConfidence } from './confidence'
 import { money } from '../utils/format'
-import { nextSteps, valueNote } from './explanations'
+import { hvacTradeoff, nextSteps, valueNote } from './explanations'
 import { bestOrder, cashPosition, discount, permutations, simulate, type PlanResult } from './interactions'
 import { MEASURE_IDS, SOLAR_BILL_VALUE, envelopeLoadReduction, measureConfidence } from './measures'
 import { BALANCED_MAX_STEP_PAYBACK, optimize, recommendedPath } from './optimizer'
@@ -332,6 +332,29 @@ describe('value note', () => {
     const midLife = buildBaseline({ ...demo, hvacYear: CURRENT_YEAR - 14 }, 0)
     expect(valueNote(plan(midLife), midLife)).toBeNull()
     expect(valueNote(simulate(['led'], base, scenario), base)).toBeNull()
+  })
+})
+
+describe('HVAC trade-off', () => {
+  it('says when a plan replaces HVAC past its service life', () => {
+    expect(hvacTradeoff(simulate(['led', 'hvac'], base, scenario), base)).toMatch(/^Replaces the HVAC, which is about \d+ years old/)
+  })
+
+  it('says when a plan leaves it in place', () => {
+    expect(hvacTradeoff(simulate(['led', 'solar'], base, scenario), base)).toMatch(/^Leaves the HVAC, about \d+ years old, in place/)
+  })
+
+  it('says nothing when the HVAC is not due', () => {
+    const midLife = buildBaseline({ ...demo, hvacYear: CURRENT_YEAR - 14 }, 0)
+    expect(hvacTradeoff(simulate(['led'], midLife, scenario), midLife)).toBeNull()
+    expect(hvacTradeoff(simulate(['led', 'hvac'], midLife, scenario), midLife)).toBeNull()
+  })
+
+  it('tells the two demo paths apart', () => {
+    const r = optimize(base, scenario).strategies
+    const line = (id: string) => hvacTradeoff(r.find((s) => s.id === id)!.plan!, base)
+    expect(line('balanced')).toContain('Replaces')
+    expect(line('savings')).toContain('Leaves')
   })
 })
 

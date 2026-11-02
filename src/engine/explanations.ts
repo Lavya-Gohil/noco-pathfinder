@@ -6,7 +6,7 @@ import type { Building, BuildingType, MeasureId } from '../types'
 import { money, num, pct } from '../utils/format'
 import type { Baseline } from './baseline'
 import { ANALYSIS_YEARS, discount, type PlanResult, type StepResult } from './interactions'
-import { HVAC_SERVICE_LIFE, MEASURES, hvacIsDue } from './measures'
+import { HVAC_SERVICE_LIFE, MEASURES, hvacAge, hvacIsDue } from './measures'
 
 export type SignalKind = 'hvac' | 'envelope' | 'lighting' | 'solar' | 'cost'
 
@@ -129,6 +129,18 @@ export function valueNote(plan: PlanResult, base: Baseline): string | null {
   const hvac = plan.steps.find((s) => s.id === 'hvac')
   if (!hvac || !hvacIsDue(base)) return null
   return `This value is charged ${money(hvac.net * discount(hvac.startYear))} in today's dollars for replacing the HVAC. That equipment is past a ${HVAC_SERVICE_LIFE}-year service life, so most of this cost comes due with or without the plan.`
+}
+
+/**
+ * What a plan does about HVAC that's past its service life. Plans that skip it can look
+ * better on cost and payback only because that bill is still to come, so say so.
+ */
+export function hvacTradeoff(plan: PlanResult, base: Baseline): string | null {
+  if (!hvacIsDue(base)) return null
+  const age = `about ${hvacAge(base)} years old`
+  return plan.order.includes('hvac')
+    ? `Replaces the HVAC, which is ${age} and past its service life.`
+    : `Leaves the HVAC, ${age}, in place. Replacing it will be a separate cost.`
 }
 
 /** Next steps for the report, leaving out data the owner has already provided. */
