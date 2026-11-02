@@ -157,9 +157,11 @@ export function Tour({
           prev = key
           setRect({ top: r.top - PAD, left: r.left - PAD, width: r.width + PAD * 2, height: r.height + PAD * 2 })
         }
-        if (step.task) {
-          const a = aimBox((step.pointAt && el.querySelector<HTMLElement>(step.pointAt)) || el)
-          const aimKey = `${a.top}|${a.left}|${a.width}|${a.height}`
+        if (step.task || step.pointAt) {
+          const pointed = (step.pointAt && el.querySelector<HTMLElement>(step.pointAt)) || el
+          // A control that has just been used and disabled no longer needs pointing at.
+          const a = pointed.matches(':disabled') ? null : aimBox(pointed)
+          const aimKey = a ? `${a.top}|${a.left}|${a.width}|${a.height}` : ''
           if (aimKey !== prevAim) {
             prevAim = aimKey
             setAim(a)
@@ -240,7 +242,7 @@ export function Tour({
   if (paused) return null
 
   const arrow =
-    isTask && !done && aim
+    !done && aim
       ? placeArrow(aim, pop && { top: pop.top, left: pop.left, width: pop.width, height: popH }, window.innerWidth, window.innerHeight, step.pointFrom)
       : null
 

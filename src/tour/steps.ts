@@ -210,7 +210,8 @@ export const TOUR_STEPS: TourStep[] = [
     sub: 2,
     target: 'strategy-lab',
     title: 'Try a different order',
-    body: 'This is live. Move an upgrade earlier or later, or jump to the worst order, and the same simulation shows what that order is worth.',
+    body: 'This is live. Click Worst order to see what a bad sequence costs, or move an upgrade earlier or later. The same simulation shows what each order is worth. Select Next when you are ready.',
+    pointAt: '[data-tour="strategy-lab-worst"]',
   },
   {
     chapter: 2,

@@ -43,7 +43,7 @@ export function OrderLab({ plan, base, scenario }: { plan: PlanResult; base: Bas
       description={`Move the upgrades to see what the order is worth. All ${ranked.length} orders of this plan are simulated.`}
       actions={
         <>
-          <Button variant="secondary" size="sm" onClick={() => setOrder(worst.order)} disabled={index === ranked.length - 1}>
+          <Button variant="secondary" size="sm" onClick={() => setOrder(worst.order)} disabled={index === ranked.length - 1} tour="strategy-lab-worst">
             Worst order
           </Button>
           <Button variant="secondary" size="sm" onClick={() => setOrder(best.order)} disabled={index === 0}>
