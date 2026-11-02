@@ -2,7 +2,7 @@ import { useMemo, useState, type ReactNode } from 'react'
 import { SlidersHorizontal } from 'lucide-react'
 import type { Baseline } from '../engine/baseline'
 import { whyThisOrder } from '../engine/explanations'
-import type { PlanResult, StepResult } from '../engine/interactions'
+import { ANALYSIS_YEARS, DISCOUNT_RATE, type PlanResult, type StepResult } from '../engine/interactions'
 import { MEASURES, MEASURE_IDS } from '../engine/measures'
 import type { OptimizerResult, Strategy } from '../engine/optimizer'
 import { PATH_DASH, useChartPalette } from '../theme'
@@ -347,7 +347,7 @@ export function StrategyPage({
             <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
               <p className="text-[13px] text-fg-2">Select a path to see its roadmap. Move the budget to see paths change.</p>
               <span className="tnum text-[12px] text-fg-2">
-                {result.candidates.length} combinations tested · {result.affordable.length} within budget
+                {result.candidates.length} combinations and {result.ordersTested} orders tested · {result.affordable.length} within budget
               </span>
             </div>
             <div data-tour="strategy-paths" className="grid gap-5 lg:grid-cols-3">
@@ -373,7 +373,7 @@ export function StrategyPage({
                 <Panel
                   tour="strategy-roadmap"
                   title="Upgrade roadmap"
-                  description="Phases in the order Asset IQ recommends"
+                  description="Phases one year apart, in the order worth the most"
                   actions={<EstimateNote className="hidden sm:inline-flex">Pre-audit estimate</EstimateNote>}
                 >
                   <Roadmap plan={plan} base={base} future={future.slice(0, 2)} budget={scenario.budget} />
@@ -383,6 +383,7 @@ export function StrategyPage({
                     <SummaryRow label="Net investment" strong value={<AnimatedNumber value={plan.net} format={money} />} />
                     <SummaryRow label="Annual savings" strong value={<AnimatedNumber value={plan.annualSavings} format={money} />} />
                     <SummaryRow label="Simple payback" strong value={<AnimatedNumber value={plan.payback} format={years} />} />
+                    <SummaryRow label={`${ANALYSIS_YEARS}-year value at ${pct(DISCOUNT_RATE)} discount`} value={money(plan.npv)} />
                     <SummaryRow label="Gross cost" value={<AnimatedNumber value={plan.gross} format={money} />} />
                     <SummaryRow label="Potential incentive" value={<AnimatedNumber value={plan.incentive} format={(v) => `−${money(v)}`} />} />
                     <SummaryRow label="CO₂ reduction" value={<>{tons(plan.co2)}/yr</>} />
@@ -470,7 +471,7 @@ export function StrategyPage({
                 Potential incentive — eligibility requires verification. Live incentive programs are not checked.
               </p>
             </Panel>
-            <Panel title="Cumulative cash position" description="Net investment recovered by annual savings, 15 years, no escalation">
+            <Panel title="Cumulative cash position" description={`Phases one year apart, ${ANALYSIS_YEARS} years, no price escalation`}>
               <CashFlowChart strategies={result.strategies} selected={selected} />
             </Panel>
           </div>

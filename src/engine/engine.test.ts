@@ -3,7 +3,7 @@ import { DEMO_FORM, toBuilding } from '../utils/building'
 import { CURRENT_YEAR, buildBaseline, climateFor, measuredCoolingShare } from './baseline'
 import { dataConfidence } from './confidence'
 import { nextSteps } from './explanations'
-import { simulate, type PlanResult } from './interactions'
+import { bestOrder, cashPosition, permutations, simulate, type PlanResult } from './interactions'
 import { MEASURE_IDS, SOLAR_BILL_VALUE, envelopeLoadReduction } from './measures'
 import { BALANCED_MAX_STEP_PAYBACK, optimize, recommendedPath } from './optimizer'
 import type { MeasureId } from '../types'
@@ -217,6 +217,71 @@ describe('measure realism', () => {
     const balanced = optimize(base, scenario).strategies.find((s) => s.id === 'balanced')!
     expect(balanced.plan!.order).toContain('hvac')
     expect(balanced.note).toBeUndefined()
+  })
+})
+
+describe('choosing the order', () => {
+  it('tries every ordering', () => {
+    expect(permutations(['led', 'hvac', 'solar'])).toHaveLength(6)
+    expect(permutations([...MEASURE_IDS])).toHaveLength(120)
+    expect(optimize(base, scenario).ordersTested).toBe(325)
+  })
+
+  it('picks the most valuable order that fits the budget', () => {
+    const ids: MeasureId[] = ['envelope', 'led', 'hvac']
+    const chosen = simulate(bestOrder(ids, base, scenario), base, scenario, false)
+    for (const order of permutations(ids)) {
+      const other = simulate(order, base, scenario, false)
+      if (other.net <= scenario.budget) expect(chosen.npv).toBeGreaterThanOrEqual(other.npv - 0.01)
+    }
+    expect(chosen.net).toBeLessThanOrEqual(scenario.budget)
+  })
+
+  it('prefers a cheaper order when only that one fits', () => {
+    const ids: MeasureId[] = ['envelope', 'led', 'hvac']
+    const order = bestOrder(ids, base, { ...scenario, budget: 580_000 })
+    expect(order.indexOf('hvac')).toBe(2)
+  })
+
+  it('is not one fixed sequence', () => {
+    const orders = new Set<string>()
+    for (const state of ['NY', 'TX', 'CA'])
+      for (const yearBuilt of [1965, 1988, 2008])
+        for (const heatCost of [5_000, 54_000, 150_000]) {
+          const b = buildBaseline({ ...demo, state, yearBuilt, hvacYear: null, heatCost }, 0)
+          orders.add(bestOrder(['envelope', 'led', 'hvac', 'controls'], b, { ...scenario, budget: 5_000_000 }).join('>'))
+        }
+    expect(orders.size).toBeGreaterThan(1)
+  })
+
+  it('never puts HVAC ahead of the load reductions that shrink it on the demo', () => {
+    const order = bestOrder(['envelope', 'led', 'hvac'], base, scenario)
+    expect(order.indexOf('hvac')).toBeGreaterThan(order.indexOf('envelope'))
+  })
+
+  it('charges for recommissioning controls when HVAC follows them', () => {
+    const first = simulate(['controls', 'hvac'], base, scenario).steps[1]
+    const after = simulate(['hvac', 'controls'], base, scenario).steps[0]
+    expect(first.gross).toBeGreaterThan(after.gross)
+    expect(first.effects.some((e) => e.title === 'Controls recommissioned')).toBe(true)
+  })
+
+  it('starts each phase a year after the last', () => {
+    expect(simulate(['led', 'envelope', 'hvac'], base, scenario).steps.map((s) => s.startYear)).toEqual([0, 1, 2])
+  })
+
+  it('values earlier savings above later ones', () => {
+    const fastFirst = simulate(['led', 'solar'], base, scenario)
+    const slowFirst = simulate(['solar', 'led'], base, scenario)
+    expect(fastFirst.npv).toBeGreaterThan(slowFirst.npv)
+  })
+
+  it('tracks cash phase by phase', () => {
+    const plan = simulate(['led', 'envelope'], base, scenario)
+    const [a, b] = plan.steps
+    expect(cashPosition(plan, 0)).toBeCloseTo(-a.net, 6)
+    expect(cashPosition(plan, 1)).toBeCloseTo(-a.net + a.annualSavings - b.net, 6)
+    expect(cashPosition(plan, 3)).toBeCloseTo(-a.net - b.net + a.annualSavings * 3 + b.annualSavings * 2, 6)
   })
 })
 

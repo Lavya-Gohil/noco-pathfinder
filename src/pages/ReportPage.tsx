@@ -3,6 +3,7 @@ import { ArrowLeft, Printer } from 'lucide-react'
 import { GAS_PRICE_PER_THERM, type Baseline } from '../engine/baseline'
 import type { DataConfidence } from '../engine/confidence'
 import { nextSteps, phaseReason, whyThisOrder } from '../engine/explanations'
+import { ANALYSIS_YEARS, DISCOUNT_RATE } from '../engine/interactions'
 import { MEASURES } from '../engine/measures'
 import type { Strategy } from '../engine/optimizer'
 import type { Scenario } from '../types'
@@ -183,6 +184,7 @@ export function ReportPage({
                   <Row label="Net investment" value={money(plan.net)} strong />
                   <Row label="Estimated annual savings" value={money(plan.annualSavings)} strong />
                   <Row label="Simple payback" value={years(plan.payback)} />
+                  <Row label={`${ANALYSIS_YEARS}-year value at ${pct(DISCOUNT_RATE)} discount`} value={money(plan.npv)} />
                   <Row label="Estimated CO₂ reduction" value={`${tons(plan.co2)} per year`} />
                   <Row label="Budget" value={money(scenario.budget)} />
                 </tbody>

@@ -150,7 +150,7 @@ export const TOUR_STEPS: TourStep[] = [
     sub: 0,
     target: 'strategy-paths',
     title: 'Three investment paths',
-    body: 'Asset IQ tested all 31 combinations of five upgrades and picked the best plan for each goal: fastest payback, balanced, and deepest reduction.',
+    body: 'Asset IQ tested all 31 combinations of five upgrades, in every order, and picked the best plan for each goal: fastest payback, balanced, and deepest reduction.',
   },
   {
     chapter: 2,
@@ -180,7 +180,7 @@ export const TOUR_STEPS: TourStep[] = [
     sub: 1,
     target: 'strategy-stages',
     title: 'Why the order matters',
-    body: 'Phases run in dependency order: reduce loads first, then size equipment to the smaller load, then add generation.',
+    body: 'Every order was tested, and this one is worth the most over 15 years. Upgrades that shrink the load usually come before equipment sized to it.',
     task: 'Open the Why this order stage.',
     until: (s) => s.subs.strategy === 2,
     perform: (api) => api.setSub('strategy', 2),

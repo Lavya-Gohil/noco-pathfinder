@@ -1,13 +1,12 @@
 import { CartesianGrid, LabelList, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { cashPosition, ANALYSIS_YEARS as YEARS } from '../engine/interactions'
 import type { Strategy } from '../engine/optimizer'
 import { PATH_DASH, useChartPalette } from '../theme'
 import type { PathId } from '../types'
 import { money, moneyShort } from '../utils/format'
 import { ChartTooltip } from './ChartTooltip'
 
-const YEARS = 15
-
-/** Cumulative net cash position: −net investment + annual savings × years (no escalation). */
+/** Cumulative net cash position, with each phase paid for and saving from its own year (no escalation). */
 export function CashFlowChart({ strategies, selected }: { strategies: Strategy[]; selected: PathId }) {
   const c = useChartPalette()
   const shown = strategies.filter((s) => s.plan && !s.sameAs)
@@ -16,7 +15,7 @@ export function CashFlowChart({ strategies, selected }: { strategies: Strategy[]
   }
   const data = Array.from({ length: YEARS + 1 }, (_, year) => {
     const row: Record<string, number> = { year }
-    for (const s of shown) row[s.id] = Math.round(-s.plan!.net + s.plan!.annualSavings * year)
+    for (const s of shown) row[s.id] = Math.round(cashPosition(s.plan!, year))
     return row
   })
   const names = Object.fromEntries(shown.map((s) => [s.id, s.name]))

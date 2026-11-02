@@ -118,7 +118,7 @@ export const MEASURES: Record<MeasureId, MeasureMeta> = {
     ],
     interactions: [
       'When paired with new HVAC, a 20% overlap factor is applied to HVAC-related control savings because modern equipment already includes some of the same control capability.',
-      'Commissioned after new HVAC so programming is not stranded on retiring equipment.',
+      'If installed before new HVAC, about a quarter of the cost is spent again to recommission controls on the new equipment.',
     ],
   },
   solar: {

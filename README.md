@@ -20,8 +20,8 @@ Live: https://lavya-gohil.github.io/noco-pathfinder/
 |---|---|
 | `baseline.ts` | Intake → end-use breakdown, prices, design tons, roof kW, emissions |
 | `measures.ts` | The 5 measures: metadata + stand-alone cost/savings coefficients |
-| `interactions.ts` | Sequential simulation + interaction rules A–D, sequencing rules, sanity caps |
-| `optimizer.ts` | Enumerates all 31 combinations → Quick Wins / Balanced / Deep Retrofit |
+| `interactions.ts` | Sequential simulation + interaction rules A–D, order search by 15-year value, sanity caps |
+| `optimizer.ts` | Enumerates all 31 combinations and 325 orders → Quick Wins / Balanced / Deep Retrofit |
 | `explanations.ts` | Diagnosis signals, phase reasons, "Why this order" narrative |
 | `confidence.ts` | Data-confidence score and most valuable next data point |
 

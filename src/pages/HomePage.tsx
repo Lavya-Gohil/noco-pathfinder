@@ -34,7 +34,7 @@ function useDemoResult() {
     const plan = r.strategies.find((s) => s.id === 'balanced')!.plan!
     const hvac = plan.steps.find((s) => s.id === 'hvac')
     const capital = hvac ? hvac.effects.reduce((a, e) => a + Math.max(0, e.capitalImpact), 0) : 0
-    return { b, base, plan, hvac, capital, combos: r.plans.length, confidence: dataConfidence(b) }
+    return { b, base, plan, hvac, capital, orders: r.ordersTested, confidence: dataConfidence(b) }
   }, [])
 }
 
@@ -86,7 +86,7 @@ function HeroPreview() {
           <div className="text-[13px] font-semibold text-fg">HVAC net cost</div>
           {[
             { label: 'Sized for today’s building', v: before, brand: false },
-            { label: 'After envelope + LED first', v: after, brand: true },
+            { label: `After ${plan.order.slice(0, plan.order.indexOf('hvac')).map((m) => MEASURES[m].short).join(' + ')} first`, v: after, brand: true },
           ].map((r) => (
             <div key={r.label} className="mt-3">
               <div className="mb-1 flex justify-between text-[12px]">
@@ -128,12 +128,12 @@ function HeroPreview() {
 const STEPS: { icon: ReactNode; title: string; text: string }[] = [
   { icon: <ClipboardList className="h-5 w-5" />, title: 'Assess', text: 'Four short sections: property, systems, energy bills, budget and goal. About two minutes.' },
   { icon: <Gauge className="h-5 w-5" />, title: 'Diagnose', text: 'See where energy likely goes, how confident the estimate is, and the one data point worth collecting next.' },
-  { icon: <ListOrdered className="h-5 w-5" />, title: 'Sequence', text: 'Every combination of upgrades is tested, ordered by dependency, and costed with interactions included.' },
+  { icon: <ListOrdered className="h-5 w-5" />, title: 'Sequence', text: 'Every combination of upgrades is tested in every order, and costed with interactions included.' },
   { icon: <FileText className="h-5 w-5" />, title: 'Report', text: 'A printable roadmap for owners and stakeholders: sequence, financials, confidence and next steps.' },
 ]
 
 const FEATURES: { icon: ReactNode; title: string; text: string }[] = [
-  { icon: <Layers className="h-5 w-5" />, title: 'Sequencing engine', text: 'Envelope before HVAC, LED before cooling, controls after new equipment, solar sized to the reduced load.' },
+  { icon: <Layers className="h-5 w-5" />, title: 'Sequencing engine', text: 'The order is calculated for each building, weighing what upgrades do to each other against savings starting sooner.' },
   { icon: <Scale className="h-5 w-5" />, title: 'No double counting', text: 'Each phase saves energy from the load left by earlier phases, so combined savings stay realistic.' },
   { icon: <SlidersHorizontal className="h-5 w-5" />, title: 'Budget-aware paths', text: 'Quick Wins, Balanced and Deep Retrofit re-optimize instantly as budget, prices or incentives change.' },
   { icon: <BadgeCheck className="h-5 w-5" />, title: 'Honest confidence', text: 'A data confidence score and clear labels on every pre-audit estimate and potential incentive.' },
@@ -142,7 +142,7 @@ const FEATURES: { icon: ReactNode; title: string; text: string }[] = [
 ]
 
 export function HomePage({ onDemo, onStart, onLaunch }: { onDemo: () => void; onStart: () => void; onLaunch: () => void }) {
-  const { plan, capital, combos, b, base, confidence } = useDemoResult()
+  const { plan, capital, orders, b, base, confidence } = useDemoResult()
 
   return (
     <div className="min-h-screen bg-bg">
@@ -204,7 +204,7 @@ export function HomePage({ onDemo, onStart, onLaunch }: { onDemo: () => void; on
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <div className="neu-inset grid grid-cols-2 gap-px overflow-hidden rounded-3xl md:grid-cols-4">
           {[
-            [String(combos), 'upgrade combinations tested per building'],
+            [String(orders), 'upgrade plans tested per building'],
             ['4', 'interaction rules between upgrades'],
             ['~2 min', 'from building details to a roadmap'],
             ['0', 'bytes of building data sent anywhere'],

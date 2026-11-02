@@ -1,11 +1,11 @@
-// Strategy optimizer. With five measures there are only 31 non-empty
-// combinations, so every one is sequenced, simulated through the interaction
-// engine, and scored. Nothing about the result is hard-coded.
+// Strategy optimizer. With five measures there are only 31 non-empty combinations
+// and 325 orderings of them, so every one is simulated through the interaction
+// engine. Each combination keeps its most valuable order, and is then scored.
 
 import type { MeasureId, Objective, PathId, Scenario } from '../types'
 import { clamp } from '../utils/sanity'
 import type { Baseline } from './baseline'
-import { simulate, sequence, type PlanResult } from './interactions'
+import { bestOrder, simulate, type PlanResult } from './interactions'
 import { MEASURE_IDS, hvacIsDue, hvacNotAdvised } from './measures'
 
 export interface Strategy {
@@ -28,6 +28,8 @@ export interface OptimizerResult {
   /** The combinations a path may choose from. */
   candidates: PlanResult[]
   affordable: PlanResult[]
+  /** How many orderings of the candidates were simulated. */
+  ordersTested: number
   /** Measures left out of the candidates, and why. */
   notAdvised: Partial<Record<MeasureId, string>>
   cheapestEntry: PlanResult | null
@@ -89,14 +91,16 @@ export function balancedScore(p: PlanResult, maxSavings: number, budget: number)
 }
 
 export function optimize(base: Baseline, scenario: Scenario): OptimizerResult {
-  const plans = combinations().map((ids) => simulate(sequence(ids, base), base, scenario))
+  const plans = combinations().map((ids) => simulate(bestOrder(ids, base, scenario), base, scenario))
   const reason = hvacNotAdvised(base)
   const notAdvised: Partial<Record<MeasureId, string>> = reason ? { hvac: reason } : {}
   const candidates = plans.filter((p) => !p.order.some((m) => notAdvised[m]))
   const budget = Math.max(0, scenario.budget)
   const affordable = candidates.filter((p) => p.net <= budget + 0.5 && p.payback !== null)
   const cheapestEntry = [...candidates].sort((a, b) => a.net - b.net)[0] ?? null
-  const fullPlan = simulate(sequence(MEASURE_IDS.filter((m) => !notAdvised[m]), base), base, scenario)
+  const fullPlan = simulate(bestOrder(MEASURE_IDS.filter((m) => !notAdvised[m]), base, scenario), base, scenario)
+  const factorial = (n: number): number => (n <= 1 ? 1 : n * factorial(n - 1))
+  const ordersTested = candidates.reduce((a, p) => a + factorial(p.order.length), 0)
 
   // QUICK WINS — shortest payback; among near-ties (within half a year) take
   // the combination with the most annual savings so it's not a token project.
@@ -161,5 +165,5 @@ export function optimize(base: Baseline, scenario: Scenario): OptimizerResult {
     }
   })
 
-  return { strategies, plans, candidates, affordable, notAdvised, cheapestEntry, fullPlan, nextDeeper }
+  return { strategies, plans, candidates, affordable, ordersTested, notAdvised, cheapestEntry, fullPlan, nextDeeper }
 }

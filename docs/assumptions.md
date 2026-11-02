@@ -54,6 +54,19 @@ The code is in `src/engine/interactions.ts`.
 | Solar sized to | 35% of the demand left after the other upgrades | | D |
 | Value of a solar kWh | 70% of the average electricity price | Demand charges are about 30–70% of a commercial bill [5]. Solar cut them by a median of 7–19%, depending on tariff [6]. With demand at a third of the bill, 0.67 + 0.33 × 0.1 ≈ 0.7 | B |
 
+## Choosing the order
+
+The code is `bestOrder` in `src/engine/interactions.ts`. Every order of each combination is simulated, and the one with the highest value wins, among those that fit the budget if any do.
+
+| Assumption | Value | Grade |
+|---|---|---|
+| Time between phases | 1 year | D |
+| Analysis period | 15 years | D |
+| Discount rate | 6% | D |
+| Recommissioning controls when HVAC follows them | 25% of the controls cost | D |
+
+These matter: a longer phase gap makes it more costly to delay fast-payback upgrades, and a longer analysis period favors long-payback ones.
+
 ## Rules
 
 | Rule | Value | Grade |

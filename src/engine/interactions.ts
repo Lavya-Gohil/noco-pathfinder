@@ -57,6 +57,13 @@ const THERMS_PER_KWH = KWH_TO_MMBTU / THERM_TO_MMBTU
 export const CONTROLS_HVAC_OVERLAP = 0.8
 /** Solar sized to this share of remaining electricity demand (rule D). */
 export const SOLAR_TARGET_SHARE = 0.35
+/** Cost of recommissioning controls, as a share of their cost, when new HVAC follows them. */
+export const CONTROLS_RECOMMISSION_SHARE = 0.25
+/** Time between phases, so an earlier start is worth more. */
+export const PHASE_INTERVAL_YEARS = 1
+/** Period and rate for comparing the value of a plan. */
+export const ANALYSIS_YEARS = 15
+export const DISCOUNT_RATE = 0.06
 /** Combined savings may never exceed this share of total utility spend. */
 export const MAX_SAVINGS_SHARE = 0.85
 
@@ -85,6 +92,8 @@ export interface LoadState {
 export interface StepResult {
   id: MeasureId
   phase: number
+  /** Years from the start of the program until this phase is installed. */
+  startYear: number
   gross: number
   incentive: number
   net: number
@@ -124,6 +133,10 @@ export interface PlanResult {
   unsequencedNet: number
   /** Capital avoided by sequencing (unsequencedNet - net, ≥ 0). */
   sequencingSavings: number
+  /** Value over the analysis period: discounted savings minus discounted cost. */
+  npv: number
+  /** How much more this order is worth than big-equipment-first (≥ 0). */
+  sequencingValue: number
   effects: InteractionEffect[]
   confidence: ConfidenceLevel
 }
@@ -206,7 +219,9 @@ function applyMeasure(id: MeasureId, s: LoadState, base: Baseline, plan: Measure
 
     case 'hvac': {
       const fullCost = base.designTons * hvacCostPerTon(base)
-      const gross = fullCost * (1 - HVAC_SCALABLE_COST_SHARE * (1 - s.designLoadFactor))
+      const sized = fullCost * (1 - HVAC_SCALABLE_COST_SHARE * (1 - s.designLoadFactor))
+      const recommission = has('controls') ? controlsGross(base) * CONTROLS_RECOMMISSION_SHARE : 0
+      const gross = sized + recommission
       const f = hvacFractions(base)
       const heatSaved = s.heatUnits * f.heat
       const coolSaved = s.coolingKwh * f.cool
@@ -216,7 +231,7 @@ function applyMeasure(id: MeasureId, s: LoadState, base: Baseline, plan: Measure
 
       // Split the total capacity reduction between rules A and B so the two
       // effects always add up to (full-size cost - right-sized cost).
-      const totalReduction = fullCost - gross
+      const totalReduction = fullCost - sized
       const envelopeShare = has('envelope') ? fullCost * HVAC_SCALABLE_COST_SHARE * envelopeLoadReduction(base) : 0
       if (has('envelope')) {
         effects.push({
@@ -246,6 +261,16 @@ function applyMeasure(id: MeasureId, s: LoadState, base: Baseline, plan: Measure
             'Part of the heating and cooling savings has already been captured by earlier load-reduction measures, so HVAC savings are calculated on the remaining load.',
           capitalImpact: 0,
           savingsImpact: actualSavings - baseSavings,
+        })
+      }
+      if (recommission > 0) {
+        effects.push({
+          rule: 'controls-hvac',
+          title: 'Controls recommissioned',
+          detail:
+            'Controls went in before the new HVAC, so part of their cost is spent again to recommission them on the new equipment. This is included in the HVAC cost.',
+          capitalImpact: 0,
+          savingsImpact: 0,
         })
       }
       s.heatUnits -= heatSaved
@@ -338,6 +363,21 @@ function finalDemandFor(order: MeasureId[], base: Baseline): number {
 
 const RANK: Record<ConfidenceLevel, number> = { Low: 0, Medium: 1, High: 2 }
 
+/** Discounted value of the phases over the analysis period, with each starting in its own year. */
+function planValue(steps: StepResult[]): number {
+  const discount = (year: number) => (1 + DISCOUNT_RATE) ** -year
+  return steps.reduce((total, st) => {
+    let value = -st.net * discount(st.startYear)
+    for (let y = st.startYear + 1; y <= ANALYSIS_YEARS; y++) value += st.annualSavings * discount(y)
+    return total + value
+  }, 0)
+}
+
+/** Cumulative cash after `year` years, with phases paid for and saving from their own start. */
+export function cashPosition(plan: PlanResult, year: number): number {
+  return plan.steps.reduce((total, st) => (st.startYear > year ? total : total - st.net + st.annualSavings * (year - st.startYear)), 0)
+}
+
 /** Simulate a plan in the given order and roll up economics with sanity caps. */
 export function simulate(order: MeasureId[], base: Baseline, scenario: Scenario, withUnsequenced = true): PlanResult {
   const s = initialState(base)
@@ -362,6 +402,7 @@ export function simulate(order: MeasureId[], base: Baseline, scenario: Scenario,
     steps.push({
       id,
       phase: i + 1,
+      startYear: i * PHASE_INTERVAL_YEARS,
       gross,
       incentive,
       net,
@@ -395,10 +436,16 @@ export function simulate(order: MeasureId[], base: Baseline, scenario: Scenario,
   const mmbtu = sum((x) => x.mmbtu)
   const naiveSavings = sum((x) => x.standaloneSavings)
 
+  const npv = planValue(steps)
   let unsequencedNet = net
+  let unsequencedNpv = npv
   if (withUnsequenced && order.length > 1) {
     const bad = unsequencedOrder(order)
-    if (bad.join() !== order.join()) unsequencedNet = simulate(bad, base, scenario, false).net
+    if (bad.join() !== order.join()) {
+      const other = simulate(bad, base, scenario, false)
+      unsequencedNet = other.net
+      unsequencedNpv = other.npv
+    }
   }
 
   const confidence = steps.length
@@ -422,6 +469,8 @@ export function simulate(order: MeasureId[], base: Baseline, scenario: Scenario,
     overlapRemoved: nonNeg(naiveSavings - annualSavings),
     unsequencedNet,
     sequencingSavings: nonNeg(unsequencedNet - net),
+    npv,
+    sequencingValue: nonNeg(npv - unsequencedNpv),
     effects: steps.flatMap((x) => x.effects),
     confidence,
   }
@@ -433,30 +482,20 @@ export function unsequencedOrder(ids: MeasureId[]): MeasureId[] {
   return pri.filter((m) => ids.includes(m))
 }
 
-/**
- * Sequencing rules — the order Asset IQ recommends for a set of measures:
- *  1. Load reduction (envelope, LED) before systems. If HVAC is in the plan,
- *     envelope leads because it has the largest effect on HVAC sizing;
- *     otherwise the faster payback goes first.
- *  2. HVAC after load reduction so it can be right-sized.
- *  3. Controls are commissioned after new HVAC; without HVAC they are an
- *     early low-cost win ordered by payback.
- *  4. Solar always last, sized to remaining demand.
- */
-export function sequence(ids: MeasureId[], base: Baseline): MeasureId[] {
-  const has = (m: MeasureId) => ids.includes(m)
-  const pb = (m: MeasureId) => {
-    const a = standalone(m, base)
-    return a.savings > 0 ? a.gross / a.savings : Infinity
-  }
-  const early: MeasureId[] = (['envelope', 'led'] as MeasureId[]).filter(has)
-  if (!has('hvac') && has('controls')) early.push('controls')
-  if (has('hvac')) early.sort((a, b) => (a === 'envelope' ? -1 : b === 'envelope' ? 1 : pb(a) - pb(b)))
-  else early.sort((a, b) => pb(a) - pb(b))
+export function permutations(ids: MeasureId[]): MeasureId[][] {
+  if (ids.length <= 1) return [[...ids]]
+  return ids.flatMap((id, i) => permutations(ids.filter((_, j) => j !== i)).map((rest) => [id, ...rest]))
+}
 
-  const out = [...early]
-  if (has('hvac')) out.push('hvac')
-  if (has('hvac') && has('controls')) out.push('controls')
-  if (has('solar')) out.push('solar')
-  return out
+/**
+ * The order to do a set of measures in: every order is simulated, and the one worth
+ * most over the analysis period wins, among those that fit the budget if any do.
+ * Starting earlier earns more, and interactions can make a later start cheaper, so
+ * the result depends on the building and isn't a fixed rule.
+ */
+export function bestOrder(ids: MeasureId[], base: Baseline, scenario: Scenario): MeasureId[] {
+  const trials = permutations(ids).map((order) => simulate(order, base, scenario, false))
+  const fitting = trials.filter((p) => p.net <= scenario.budget + 0.5)
+  const pool = fitting.length ? fitting : trials
+  return pool.reduce((best, p) => (p.npv > best.npv + 0.005 ? p : best)).order
 }

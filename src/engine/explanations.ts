@@ -5,7 +5,7 @@
 import type { Building, BuildingType, MeasureId } from '../types'
 import { money, num, pct } from '../utils/format'
 import type { Baseline } from './baseline'
-import type { PlanResult, StepResult } from './interactions'
+import { ANALYSIS_YEARS, type PlanResult, type StepResult } from './interactions'
 import { MEASURES } from './measures'
 
 export type SignalKind = 'hvac' | 'envelope' | 'lighting' | 'solar' | 'cost'
@@ -101,8 +101,8 @@ export function phaseReason(plan: PlanResult, step: StepResult, base: Baseline):
         : `Cuts heating and cooling losses at the source${payback ? ` with an estimated ${payback.toFixed(1)}-year payback` : ''}.`
     case 'led':
       return has('hvac') && later('hvac')
-        ? 'Low capital cost with immediate savings — and less heat from lighting trims the cooling load the new HVAC has to serve.'
-        : 'Lowest-cost, fastest-payback upgrade: starts generating savings immediately and funds later phases.'
+        ? 'Starts saving as soon as it is installed, and less heat from lighting trims the cooling load the new HVAC has to serve.'
+        : `Starts saving as soon as it's installed${payback ? `, with an estimated ${payback.toFixed(1)}-year payback` : ''}.`
     case 'hvac': {
       const capital = effect(step, 'envelope-hvac') + effect(step, 'led-hvac')
       if (earlier('envelope') || earlier('led')) {
@@ -111,9 +111,10 @@ export function phaseReason(plan: PlanResult, step: StepResult, base: Baseline):
       return 'Largest single source of heating and cooling savings for aging equipment.'
     }
     case 'controls':
-      return earlier('hvac')
-        ? 'Commissioned with the new HVAC so control sequences are programmed once, on equipment that will stay.'
-        : 'Low-cost scheduling and setbacks that start saving within weeks of installation.'
+      if (earlier('hvac')) return 'Commissioned with the new HVAC so control sequences are programmed once, on equipment that will stay.'
+      return has('hvac')
+        ? 'Saves early enough to justify recommissioning when the new HVAC arrives. That cost is included in the HVAC phase.'
+        : 'Scheduling and setbacks that start saving within weeks of installation.'
     case 'solar':
       return `A ${num(step.solarKw)} kW array sized to the demand left after the other upgrades, offsetting ~${pct(step.kwhGenerated / Math.max(1, base.elecKwh))} of today's electricity use within roof limits.`
 
@@ -141,9 +142,17 @@ export interface WhyPoint {
 export function whyThisOrder(plan: PlanResult, budget: number): WhyPoint[] {
   const has = (m: MeasureId) => plan.order.includes(m)
   const step = (m: MeasureId) => plan.steps.find((s) => s.id === m)
+  const before = (a: MeasureId, b: MeasureId) => has(a) && has(b) && plan.order.indexOf(a) < plan.order.indexOf(b)
   const out: WhyPoint[] = []
 
-  if (has('envelope') && has('hvac')) {
+  if (plan.order.length > 1) {
+    out.push({
+      title: 'Every order was tested',
+      text: `This order is worth the most of all ${plan.order.length > 2 ? 'the possible orders' : 'both orders'} over ${ANALYSIS_YEARS} years, allowing for what each upgrade does to the others and for savings starting sooner or later.`,
+      impact: plan.sequencingValue > 1 ? `${money(plan.sequencingValue)} more than big-equipment-first` : undefined,
+    })
+  }
+  if (before('envelope', 'hvac')) {
     const s = step('hvac')!
     const capital = effect(s, 'envelope-hvac')
     out.push({
@@ -155,25 +164,29 @@ export function whyThisOrder(plan: PlanResult, budget: number): WhyPoint[] {
   if (has('led')) {
     const s = step('led')!
     out.push({
-      title: has('hvac') ? 'LED early, before HVAC' : 'LED early',
+      title: before('led', 'hvac') ? 'LED before HVAC' : 'LED lighting',
       text:
-        'LED lighting is prioritized early because it has relatively low capital cost and starts generating savings immediately.' +
-        (has('hvac') ? ' Lower lighting heat gain also trims the cooling load the new HVAC must handle.' : ''),
+        'LED lighting starts saving as soon as it is installed.' +
+        (before('led', 'hvac') ? ' Lower lighting heat gain also trims the cooling load the new HVAC must handle.' : ''),
       impact: `${money(s.annualSavings)}/yr from day one`,
     })
   }
   if (has('controls')) {
     out.push({
-      title: has('hvac') ? 'Controls commissioned with new HVAC' : 'Controls as an early, low-cost win',
-      text: has('hvac')
+      title: before('hvac', 'controls') ? 'Controls commissioned with new HVAC' : before('controls', 'hvac') ? 'Controls before HVAC' : 'Controls',
+      text: before('hvac', 'controls')
         ? 'Smart controls follow the HVAC replacement so they are programmed for the equipment that stays. Their overlapping savings are discounted rather than double counted.'
-        : 'Scheduling and setbacks need little capital and no construction, so they start saving almost immediately.',
+        : before('controls', 'hvac')
+          ? 'Controls save enough in the meantime to justify recommissioning them on the new equipment, which is included in the cost.'
+          : 'Scheduling and setbacks need no major construction, so they start saving quickly.',
     })
   }
   if (has('solar')) {
     out.push({
       title: 'Solar sized to the reduced load',
-      text: "The array is sized to the electricity the building will still use once the other upgrades are done. It's the slowest payback here, so it comes after the upgrades that save more per dollar.",
+      text:
+        "The array is sized to the electricity the building will still use once the other upgrades are done." +
+        (plan.order[plan.order.length - 1] === 'solar' ? ' It goes last because the earlier upgrades return more for the money.' : ''),
     })
   }
   if (plan.overlapRemoved > 1) {
